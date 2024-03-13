@@ -24,7 +24,7 @@ app.use("/api/product", productRouter);
 
 
 
-const PORT = 4000;
+const PORT = 6000;
 
 app.listen(PORT, () => {
   console.log(`server run in ${PORT} port`);

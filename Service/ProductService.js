@@ -10,24 +10,25 @@ const productService = {
     try {
       // levelOne
       const levelOne=await productService.getBank()
+      // console.log(levelOne);
       // levelOne
 
 
       //levelTwo
      
       const levelTwo=await productService.getCompanyNames(levelOne)
+      // console.log(levelTwo);
+      // const levelTwoArray=[]
+      // for(let i=0;i<levelTwo.length;i++){
+      //   for(let index=0;index<levelTwo[i].length;index++){
+      //     levelTwoArray.push(levelTwo[i][index])
+      //   }
+      // }
+      // const levelTwoArrRevers=levelTwoArray.reverse();
+      // const arrayLengthone=(levelTwoArrRevers.length-1)/2
       
-      const levelTwoArray=[]
-      for(let i=0;i<levelTwo.length;i++){
-        for(let index=0;index<levelTwo[i].length;index++){
-          levelTwoArray.push(levelTwo[i][index])
-        }
-      }
-      const levelTwoArrRevers=levelTwoArray.reverse();
-      const arrayLengthone=(levelTwoArrRevers.length-1)/2
-      
-      const levelTwoArrReversOne=levelTwoArrRevers.slice(arrayLengthone)
-      const levelTwoArrReversTwo=levelTwoArrRevers.slice(0,arrayLengthone)
+      // const levelTwoArrReversOne=levelTwoArrRevers.slice(arrayLengthone)
+      // const levelTwoArrReversTwo=levelTwoArrRevers.slice(0,arrayLengthone)
       
       //levelTwo
 
@@ -35,37 +36,37 @@ const productService = {
 
 
       //levelThree
-    const levelThreeArrayOne=[]
-    const levelThreeArrayTwo=[]
-      const levelThreeOne=await productService.getByPageOne(levelTwoArrReversOne)
-      const levelThreeTwo=await productService.getByPageTwo(levelTwoArrReversTwo)
+    // const levelThreeArrayOne=[]
+    // const levelThreeArrayTwo=[]
+    //   const levelThreeOne=await productService.getByPageOne(levelTwoArrReversOne)
+    //   const levelThreeTwo=await productService.getByPageTwo(levelTwoArrReversTwo)
      
       
       
       
       
       
-      for(let iOne=0;iOne<levelThreeOne.length;iOne++){
-        for(let index=0;index<levelThreeOne[iOne].length;index++){
-          levelThreeArrayOne.push(levelThreeOne[iOne][index])
-        }
-      }
+    //   for(let iOne=0;iOne<levelThreeOne.length;iOne++){
+    //     for(let index=0;index<levelThreeOne[iOne].length;index++){
+    //       levelThreeArrayOne.push(levelThreeOne[iOne][index])
+    //     }
+    //   }
 
-      for(let i=0;i<levelThreeTwo.length;i++){
-        for(let index=0;index<levelThreeTwo[i].length;index++){
-          levelThreeArrayTwo.push(levelThreeTwo[i][index])
-        }
-      }
+    //   for(let i=0;i<levelThreeTwo.length;i++){
+    //     for(let index=0;index<levelThreeTwo[i].length;index++){
+    //       levelThreeArrayTwo.push(levelThreeTwo[i][index])
+    //     }
+    //   }
      
-      const resultArray=levelThreeArrayOne.concat(levelThreeArrayTwo)
+    //   const resultArray=levelThreeArrayOne.concat(levelThreeArrayTwo)
       
-      //levelThree
+    //   //levelThree
 
 
 
-      //levelFour
-      console.log(resultArray.length);
-      const levelFour=await productService.getDataByPage(resultArray)
+    //   //levelFour
+    //   // console.log(resultArray.length);
+    //   const levelFour=await productService.getDataByPage(resultArray)
      
       
     } catch (error) {
@@ -97,22 +98,25 @@ const productService = {
       return el[4] === "y" && el[23] !== "n";
     });
 
-    const resultArray = [];
+    
    
-
+    const resultArray=[]
     const rrrrr = await Promise.all(yellow_page_array.map(async (link) => {
       const mainPage = await fetch(`https://www.spyur.am/${link}`);
       const html = await mainPage.text();
       const $ = cheerio.load(html);
-  
-      return $(".paging>ul>li>a").map((index, element) => $(element).attr("href")).get();
+      
+      return  [$(".paging>ul>li>.current_page").attr("href")]
+     
   }));
+  rrrrr.map((el)=>{
+    resultArray.push(el[0])
+  })
+  const filteredForUndefined=resultArray.filter((el)=> el !== undefined)
   
-  // rrrrr will be an array of arrays, each containing the href attribute values for the links
   
-  
-   
-    return rrrrr;
+   const resultLinkPage= await productService.getLinkBypage(filteredForUndefined)
+    return resultLinkPage;
   },
   getByPageOne: async (linkPage) => {
    
@@ -156,7 +160,7 @@ const productService = {
       );
       const html = await resultByComanyName.text();
       const $ = cheerio.load(html);
-      console.log($);
+      // console.log($);
       const name = $("h1").text();
       const address = $(".address_block").text().trim();
       const phone = $(".call").text();
@@ -209,8 +213,8 @@ const productService = {
      
       const activity=$(".multilevel_list>li>ul>li>ul>li>a").map((index, element) => $(element).text()).get()
       const name = $("h1").text();
-      const address = $(".address_block").map((index,element)=>$(element).text()).get;
-      const phone = $(".call").text();
+      const address = $(".address_block").map((index,element)=>$(element).text()).get();
+      const phone = $(".phone_info").map((index,element)=>$(element).text()).get()
       const lat = $("#map_canvas").attr("lat");
       const lon = $("#map_canvas").attr("lon");
       const datObj={
@@ -253,6 +257,31 @@ const productService = {
    
     return rrrrr;
   },
+  getLinkBypage:async (linkPage)=>{
+    try {
+      await linkPage.map(async(link)=>{
+        const mainRes=await fetch(`https://www.spyur.am${link}`)
+        const html = await mainRes.text();
+        const $ = cheerio.load(html);
+        if($(".next_page").attr("href")){
+
+        }
+      })
+     
+      
+      
+    } catch (error) {
+      
+    }
+  },
+  getLinkBypageLoop:async ()=>{
+    try {
+      
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
 };
 
 export default productService;
