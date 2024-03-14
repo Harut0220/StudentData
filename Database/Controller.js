@@ -20,6 +20,25 @@ export const createTable = async () => {
     )`
     );
   };
+
+  export const createTableByPagesLinks=async ()=>{
+    const results = await pool.query(
+      `CREATE TABLE page_links(
+        id int AUTO_INCREMENT,
+        pageLink varchar(200) NOT NULL,
+        PRIMARY KEY (id)
+    )`
+    );
+  }
+
+  export const addLinks=async(linksByAllPages)=>{
+    linksByAllPages.map(async(el)=>{
+      const results = await pool.query(
+      `INSERT INTO page_links(pageLink) VALUES('${el}')`
+    );
+    })
+    
+  }
   
   export const storeQrToDB = async (nameCompany,address,phone,category,lat,lon) => {
     // console.log("storeQrToDB --> qr, uniqueId =====> ", qr_path, unique_token);
@@ -27,3 +46,9 @@ export const createTable = async () => {
       `INSERT INTO spyur_data(nameCompany,address,phone,category,lat,lon) VALUES('${nameCompany}','${address}','${phone}','${category}','${lat}','${lon}')`
     );
   };
+
+  export const getLinksPagesDb=async()=>{
+    const results = await pool.query(
+      `SELECT * FROM spyur_data;`
+    )
+  }

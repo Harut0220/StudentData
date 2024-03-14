@@ -1,38 +1,75 @@
 import cheerio, { html } from "cheerio";
 import fetch from "node-fetch";
 import axios from "axios";
-import { storeQrToDB, useDatabase } from "../Database/Controller.js";
+import { addLinks, getLinksPagesDb, storeQrToDB, useDatabase } from "../Database/Controller.js";
 // import { each } from "cheerio/lib/api/traversing.js";
 // import { slice } from "cheerio/lib/api/traversing.js";
 
 const productService = {
   spyurController:async ()=>{
     try {
+      let array=[]
+      let resPagesArray=[]
       // levelOne
       const levelOne=await productService.getBank()
-      // console.log(levelOne);
+      
       // levelOne
 
 
-      //levelTwo
+      //levelTwo tareri arajin ejer@
      
       const levelTwo=await productService.getCompanyNames(levelOne)
-      // console.log(levelTwo);
-      // const levelTwoArray=[]
-      // for(let i=0;i<levelTwo.length;i++){
-      //   for(let index=0;index<levelTwo[i].length;index++){
-      //     levelTwoArray.push(levelTwo[i][index])
-      //   }
-      // }
-      // const levelTwoArrRevers=levelTwoArray.reverse();
-      // const arrayLengthone=(levelTwoArrRevers.length-1)/2
-      
-      // const levelTwoArrReversOne=levelTwoArrRevers.slice(arrayLengthone)
-      // const levelTwoArrReversTwo=levelTwoArrRevers.slice(0,arrayLengthone)
-      
-      //levelTwo
+
+      //levelTwo tareri arajin ejer@
 
 
+
+
+      //amen meki next
+      
+     const getLinkBypage = async (linkPage)=>{
+          const mainRes=await fetch(`https://www.spyur.am${linkPage}`)
+          const html = await mainRes.text();
+          const $ = cheerio.load(html);
+          
+          array.push($(".next_page").attr("href"))
+       
+          if($(".next_page").attr("href")){
+            
+            const resf= await getLinkBypage($(".next_page").attr("href"))
+            return resf
+          }else{return array}
+        
+        }
+        
+      //amen meki next
+      
+      
+
+
+
+    const resPagesOne=await Promise.all(levelTwo.map(async (el)=>{
+     const getPageOnes=await getLinkBypage(el)
+     return getPageOnes
+     
+     }))
+
+     const linksByAllPages=resPagesOne[resPagesOne.length-1];
+
+     const dbSndlinksByAllPages=(arr)=>{
+      try {
+        addLinks(arr)
+      } catch (error) {
+        console.error(error)
+      }
+     }
+
+     const resConcat=levelTwo.concat(linksByAllPages)
+     const filresArray=resConcat.filter((el)=> el !== undefined)
+    //  console.log(filresArray);
+     await useDatabase()
+
+     await dbSndlinksByAllPages(filresArray)
 
 
       //levelThree
@@ -65,7 +102,7 @@ const productService = {
 
 
     //   //levelFour
-    //   // console.log(resultArray.length);
+  
     //   const levelFour=await productService.getDataByPage(resultArray)
      
       
@@ -94,6 +131,7 @@ const productService = {
     } catch (error) {}
   },
   getCompanyNames: async (urls) => {
+   
     const yellow_page_array = urls.filter((el) => {
       return el[4] === "y" && el[23] !== "n";
     });
@@ -112,28 +150,10 @@ const productService = {
   rrrrr.map((el)=>{
     resultArray.push(el[0])
   })
+  
   const filteredForUndefined=resultArray.filter((el)=> el !== undefined)
-  
-  
-   const resultLinkPage= await productService.getLinkBypage(filteredForUndefined)
-    return resultLinkPage;
-  },
-  getByPageOne: async (linkPage) => {
-   
-    try {
-      const rrrrr = await Promise.all(linkPage.map(async (link) => {
-        const mainPage = await fetch(`https://www.spyur.am/${link}`);
-        const html = await mainPage.text();
-        const $ = cheerio.load(html);
-    
-        return $(".row>.listing_container>#results_list_wrapper>a").map((index, element) => $(element).attr("href")).get();
-    }));
-
-   
-    return rrrrr
-
-      
-    } catch (error) {}
+ 
+    return filteredForUndefined;
   },
   getByPageTwo: async (linkPage) => {
    
@@ -160,14 +180,14 @@ const productService = {
       );
       const html = await resultByComanyName.text();
       const $ = cheerio.load(html);
-      // console.log($);
+     
       const name = $("h1").text();
       const address = $(".address_block").text().trim();
       const phone = $(".call").text();
       const category = $(".info_content>.text_block>.multilevel_list>li>ul>li>ul>li").text();
       const lat = $("#map_canvas").attr("lat");
       const lon = $("#map_canvas").attr("lon");
-          // console.log(name,address,phone);
+      
      
       // await useDatabase();
       // await storeQrToDB(name, address, phone, category, lat, lon);
@@ -204,31 +224,9 @@ const productService = {
     const res = await productService.banksByOne(links);
   return res
   },
-  banksByOne: async (links, dataResult) => {
-    const arr=[]
-    const rrrrr = await Promise.all(links.map(async (link) => {
-      const mainPage = await fetch(`https://www.spyur.am/${link}`);
-      const html = await mainPage.text();
-      const $ = cheerio.load(html);
-     
-      const activity=$(".multilevel_list>li>ul>li>ul>li>a").map((index, element) => $(element).text()).get()
-      const name = $("h1").text();
-      const address = $(".address_block").map((index,element)=>$(element).text()).get();
-      const phone = $(".phone_info").map((index,element)=>$(element).text()).get()
-      const lat = $("#map_canvas").attr("lat");
-      const lon = $("#map_canvas").attr("lon");
-      const datObj={
-        name,
-        activity,
-        address,
-        phone,
-        lat,
-        lon,
-      }
-      return datObj
-  }));
+  
 
-// console.log(rrrrr);
+
     // const loopLinks = links.map(async (linkCompanyName) => {
     //   const resultByComanyName = await fetch(
     //     `https://www.spyur.am${linkCompanyName}`
@@ -255,25 +253,8 @@ const productService = {
     //   };
     // });
    
-    return rrrrr;
-  },
-  getLinkBypage:async (linkPage)=>{
-    try {
-      await linkPage.map(async(link)=>{
-        const mainRes=await fetch(`https://www.spyur.am${link}`)
-        const html = await mainRes.text();
-        const $ = cheerio.load(html);
-        if($(".next_page").attr("href")){
-
-        }
-      })
-     
-      
-      
-    } catch (error) {
-      
-    }
-  },
+  
+ 
   getLinkBypageLoop:async ()=>{
     try {
       
