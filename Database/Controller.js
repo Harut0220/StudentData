@@ -6,6 +6,10 @@ export const useDatabase = async () => {
     const results = await pool.query(`USE spyur;`);
   };
 
+  export const useDatabaseCompanyDB = async () => {
+    const results = await pool.query(`USE spyurCompany;`);
+  };
+
 export const createTable = async () => {
     const results = await pool.query(
       `CREATE TABLE spyur_data(
@@ -38,6 +42,15 @@ export const createTable = async () => {
     );
     })
     
+  }
+
+
+  export const addCompanyLinks=async (linksArray)=>{
+    for await (const link of linksArray){
+      const results = await pool.query(
+        `INSERT INTO company_links(company_link) VALUES('${link}')`
+      );
+    }
   }
   
   export const storeQrToDB = async (nameCompany,address,phone,category,lat,lon) => {

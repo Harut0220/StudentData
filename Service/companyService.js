@@ -1,4 +1,4 @@
-import { getLinksPagesDb, useDatabase } from "../Database/Controller.js";
+import { addCompanyLinks, getLinksPagesDb, useDatabase, useDatabaseCompanyDB } from "../Database/Controller.js";
 import mysql from 'mysql2';
 import cheerio, { html } from "cheerio";
 import fetch from "node-fetch";
@@ -7,7 +7,7 @@ import fetch from "node-fetch";
 const pool = mysql.createPool({
   host: 'localhost',
   user: 'root',
-  password: 'H20021996',
+  password: 'root',
   database: 'spyur',
   waitForConnections: true,
   connectionLimit: 10,
@@ -96,33 +96,59 @@ const companyService={
             // console.log("8 skizb",twoPipeTwoResTwo[0]);
             // console.log("8 verj",twoPipeTwoResTwo[twoPipeTwoResTwo.length-1]);
            
+            let resultAllArray=[]
 
             const resultCompanyOnePipeOne=await companyService.getByPageOne(onePipeOneResOne);
+            for await (const link1 of resultCompanyOnePipeOne){
+              resultAllArray.push(link1)
+            }
             console.log(resultCompanyOnePipeOne.length);
             const resultCompanyOnePipeTwo=await companyService.getByPageOne(onePipeOneResTwo)
+            for await (const link2 of resultCompanyOnePipeTwo){
+              resultAllArray.push(link2)
+            }
             console.log(resultCompanyOnePipeTwo.length);
             const resultCompanyTwoPipeThree=await companyService.getByPageOne(onePipeTwoResOne);
+            for await (const link3 of resultCompanyTwoPipeThree){
+              resultAllArray.push(link3)
+            }
             console.log(resultCompanyTwoPipeThree.length);
             const resultCompanyTwoPipeFour=await companyService.getByPageOne(onePipeTwoResTwo)
+            for await (const link4 of resultCompanyTwoPipeFour){
+              resultAllArray.push(link4)
+            }
             console.log(resultCompanyTwoPipeFour.length);
             const resultCompanyTwoPipeFive=await companyService.getByPageOne(twoPipeOneResOne)
+            for await (const link5 of resultCompanyTwoPipeFive){
+              resultAllArray.push(link5)
+            }
             console.log(resultCompanyTwoPipeFive.length);
             const resultCompanyTwoPipeSix=await companyService.getByPageOne(twoPipeOneResTwo)
+            for await (const link6 of resultCompanyTwoPipeSix){
+              resultAllArray.push(link6)
+            }
             console.log(resultCompanyTwoPipeSix.length);
             const resultCompanyTwoPipeSeven=await companyService.getByPageOne(twoPipeTwoResOne)
+            for await (const link7 of resultCompanyTwoPipeSeven){
+              resultAllArray.push(link7)
+            }
             console.log(resultCompanyTwoPipeSeven.length);
             const resultCompanyTwoPipeEight=await companyService.getByPageOne(twoPipeTwoResTwo)
+            for await (const link8 of resultCompanyTwoPipeEight){
+              resultAllArray.push(link8)
+            }
             console.log(resultCompanyTwoPipeEight.length);
 
             
             
+            console.log(resultAllArray);
+            console.log(resultAllArray.length);
             
             
             
-            
-            
-            
-          // return pagesLinks
+            await useDatabaseCompanyDB()
+            await addCompanyLinks(resultAllArray)
+          return resultAllArray
         } catch (error) {
           
         }
