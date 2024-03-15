@@ -24,8 +24,8 @@ app.use("/api/product", productRouter);
 
 
 
-const PORT = 6000;
 
-app.listen(PORT, () => {
-  console.log(`server run in ${PORT} port`);
+
+app.listen(process.env.PORT, () => {
+  console.log(`server run in ${process.env.PORT} port`);
 });

@@ -7,7 +7,7 @@ import fetch from "node-fetch";
 const pool = mysql.createPool({
   host: 'localhost',
   user: 'root',
-  password: 'root',
+  password: 'H20021996',
   database: 'spyur',
   waitForConnections: true,
   connectionLimit: 10,
@@ -15,7 +15,7 @@ const pool = mysql.createPool({
 });
 
 // Function to execute a query and return a promise
-function executeQuery(query) {
+export function executeQuery(query) {
   return new Promise((resolve, reject) => {
     pool.query(query, (err, results, fields) => {
       if (err) {
