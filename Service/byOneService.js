@@ -30,21 +30,12 @@ export function executeQuery(query) {
 const byOneService = {
   getByOne: async () => {
     try {
-      // await useDatabaseCompanyDB()
-      // const resdb=await executeQuery('SELECT * FROM company_links;')
-      // .then((results) => {
-      //   return results;
-      // })
-      // .catch((err) => {
-      //   console.error(err);
-      // });
-
       const linksArray = [
         "/am/companies/heqiatneri-ashkharh-event-planning-company/49361",
         "/am/companies/ham-tea-production-company/84050",
       ];
       const resultArray = [];
-      
+
       for await (const link of linksArray) {
         const resultByComanyName = await fetch(`https://www.spyur.am${link}`);
         const html = await resultByComanyName.text();
@@ -60,78 +51,86 @@ const byOneService = {
         const phone = $(".phone_info")
           .map((index, element) => $(element).text())
           .get();
-        const $2 = cheerio.load(".web_link");
-        const webLink = $2(".web_link");
-        const text = webLink.css("content");
-        const nameByAddressArrayOne=[]
-        const nameByAddress=$(".col-12>.contacts_list>.branch_block>.contact_subtitle").each((index,element)=>{
-            const nameByadd=$(element).text()
-            if (nameByadd && nameByadd.trim() !== "") {
-                nameByAddressArrayOne.push(nameByadd)
-            }
-        })
+          const titleGet=$(".contacts_list>.branch_block>.contact_subtitle").map((index,element)=>{
+            return $(element).text()
+          }).get()
+          console.log(titleGet);
+        // const lat = $(".map_ico").attr("lat");
+        // const lon = $(".map_ico").attr("lon");
+
+        const webLink=$(".web_link").attr("href")
+       
         
-        console.log("hat",nameByAddressArrayOne);
-        // const web = $(".contact_subblock>.web_link").each((index, element) => {
-        //   const link = $(element).attr("href");
+        const nameByAddressArrayOne = [];
 
-        //   if (link && link.trim() !== "") {
-        //     if (index === 2) {
-        //       webLink.push(link);
-        //     }
-
-        //     //   return link
-        //   }
-        // });
-        const lat = $("#map_canvas").attr("lat");
-        const lon = $("#map_canvas").attr("lon");
-        const activArray = [];
-        if (activity[activity.length - 1]) {
-          activArray.push(activity[activity.length - 1]);
-          if (activity[activity.length - 2]) {
-            activArray.push(activity[activity.length - 2]);
-            if (activity[activity.length - 3]) {
-              activArray.push(activity[activity.length - 3]);
+        const branchObjArray = [];
+        const resArr = [];
+        const resObj = {
+          name,
+          
+        };
+        if(webLink[8]!=="s"){
+          resObj.webLink=webLink
+        }else{
+          resObj.webLink=null
+        }
+        const nameByAddress = $(
+          ".map_ico"
+        )
+          .each(async (index, element) => {
+            const lat = $(element).attr("lat");
+            const lon =$(element).attr("lon")
+            // console.log(nameByadd);
+            
+const branchObj = { };
+            if (lat && lat.trim() !== "") {
+              
             }
-          }
-        }
+                  
+                  
+              if(lat){
+                branchObj.title=titleGet[index]
+              }else{
+                branchObj.title=null
+              }
+                  
+                 
+                  if(phone[index]){
+                    branchObj.telephone=phone[index]
+                  }else{
+                    branchObj.telephone=null
+                  }
+                  if (address[index]) {
+                    branchObj.adres=address[index]
+                  }else{
+                    branchObj.adres=null
+                  }
+                  if(lat){
+                      branchObj.latitud=lat
+                  }else{
+                      branchObj.latitud=null
+                  }
+                  if (lon) {
+                    branchObj.longitud=lon
+                  }else{
+                    branchObj.longitud=null
+                  }
+                  
+                    branchObj.lat = $(element[index]).attr("lat");
+                    branchObjArray.push(branchObj);
+                    
+                    resObj.activity = activity;
+                    resObj.branches = branchObjArray;
+                    resArr.push(resObj);
+                 
+                
 
-        const phoneArray = [];
+              
+            
+            resultArray.push(resObj);
+          })
+          .get();
         
-        const addresArray = [];
-        let index = 0;
-        for await (const adrres of address) {
-          if (address[index]) {
-            addresArray.push(adrres);
-          } else {
-            addresArray.push(" ");
-          }
-
-          if (phone[index]) {
-            phoneArray.push(phone[index]);
-          } else {
-            phoneArray.push(" ");
-          }
-
-        //   console.log("Index:", adrres);
-          index++;
-        }
-        const mapArray=[]
-        const maplatlon=[]
-        // await useDatabase();
-        // await storeQrToDB(name, address, phone, category, lat, lon);
-        if ($("#map_canvas").attr("lat") && $("#map_canvas").attr("lon")) {
-            maplatlon.push([lat,lon])
-            mapArray.push({nameByAddressArrayOne,maplatlon})
-          resultArray.push({
-            name,
-            address: addresArray,
-            phone,
-            activity: activArray,
-            text,
-            map:mapArray
-          });
-        }
       }
 
       return resultArray;
