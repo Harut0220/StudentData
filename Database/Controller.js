@@ -118,3 +118,153 @@ export const getLinksPagesDb = async () => {
   }
  
 };
+
+//level three
+
+export const useCompanys=async ()=>{
+  try {
+    const results = await pool.query(`USE companys;`);
+  } catch (error) {
+    console.error(error)
+  }
+} 
+
+
+export const tableCompany=async ()=>{
+  try {
+    const results = await pool.query(`CREATE TABLE organization (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      name VARCHAR(1000) ,
+      webLink VARCHAR(255)
+  );`);
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+export const addTableOrganization=async (name,webLink)=>{
+  try {
+    const results = await pool.query(
+      `INSERT INTO organization(name,webLink) VALUES('${name}','${webLink}')`
+    );
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+export const organizationTableId=async()=>{
+  try {
+   
+    const result=await pool.query(`SELECT * FROM organization;`)
+    return result
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+export const tableCompanyActivity=async ()=>{
+  try {
+    const result=await pool.query(
+      `CREATE TABLE activity (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        organization_id INT,
+        activity_name varchar(1000)
+    );`
+    )
+  } catch (error) {
+    console.error(error)
+  }
+} 
+
+export const addTableActivity=async (organization_id,activity_name)=>{
+  try {
+    const results = await pool.query(
+      `INSERT INTO activity(organization_id,activity_name) VALUES('${organization_id}','${activity_name}')`
+    );
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+
+export const activityTableId=async()=>{
+  try {
+    const result=await pool.query(`SELECT * FROM activity;`)
+    return result
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+
+
+export const tableCompanyBranches=async()=>{
+  try {
+    const results = await pool.query(`CREATE TABLE branch (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      organization_id INT,
+      telephone VARCHAR(1000),
+      address VARCHAR(1000),
+      latitude DECIMAL(10, 8),
+      longitude DECIMAL(11, 8),
+      title varchar(255)
+  );`);
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+export const addTableBranch=async (organization_id,telephone,address,latitude,longitude,title)=>{
+  try {
+    const results = await pool.query(
+      `INSERT INTO branch(organization_id,telephone,address,latitude,longitude,title) VALUES('${organization_id}','${telephone}','${address}','${latitude}','${longitude}','${title}')`
+    );
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+
+
+export const getLinksCompany=async()=>{
+  try {
+    const results = await pool.query(`SELECT * FROM branch;`);
+    return results
+  } catch (error) {
+    console.error(error)
+  }
+}
+//level three
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// CREATE TABLE organization (
+//   id INT AUTO_INCREMENT PRIMARY KEY,
+//   name VARCHAR(255) NOT NULL,
+//   webLink VARCHAR(255)
+// );
+
+// CREATE TABLE activity (
+//   id INT AUTO_INCREMENT PRIMARY KEY,
+//   name VARCHAR(255) NOT NULL
+// );
+
+// CREATE TABLE organization_activity (
+//   organization_id INT,
+//   activity_id INT,
+//   PRIMARY KEY (organization_id, activity_id),
+//   FOREIGN KEY (organization_id) REFERENCES organization(id),
+//   FOREIGN KEY (activity_id) REFERENCES activity(id)
+// );

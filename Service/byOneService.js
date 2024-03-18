@@ -1,4 +1,4 @@
-import { useDatabaseCompanyDB } from "../Database/Controller.js";
+import { activityTableId, addTableActivity, addTableBranch, addTableOrganization, getLinksCompany, organizationTableId, tableCompany, useCompanys, useDatabaseCompanyDB } from "../Database/Controller.js";
 // import { executeQuery } from "./companyService.js";
 import mysql from "mysql2";
 import cheerio, { html } from "cheerio";
@@ -30,20 +30,35 @@ export function executeQuery(query) {
 const byOneService = {
   getByOne: async () => {
     try {
+
+
+
+
+
+
       const linksArray = [
-        "/am/companies/heqiatneri-ashkharh-event-planning-company/49361",
+        "/am/companies/acba-bank/1951",
         "/am/companies/ham-tea-production-company/84050",
       ];
       const resultArray = [];
-
+      let count=0;
       for await (const link of linksArray) {
         const resultByComanyName = await fetch(`https://www.spyur.am${link}`);
         const html = await resultByComanyName.text();
         const $ = cheerio.load(html);
-
+        const activArray=[]
         const activity = $(".multilevel_list>li>ul>li>ul>li>a")
           .map((index, element) => $(element).text())
           .get();
+          if (activity[activity.length-1]) {
+            activArray.push(activity[activity.length-1])
+          }
+          if(activity[activity.length-2]){
+            activArray.push(activity[activity.length-2])
+          }
+          
+          
+       
         const name = $("h1").text();
         const address = $(".address_block")
           .map((index, element) => $(element).text())
@@ -51,12 +66,12 @@ const byOneService = {
         const phone = $(".phone_info")
           .map((index, element) => $(element).text())
           .get();
+         
           const titleGet=$(".contacts_list>.branch_block>.contact_subtitle").map((index,element)=>{
             return $(element).text()
           }).get()
-          console.log(titleGet);
-        // const lat = $(".map_ico").attr("lat");
-        // const lon = $(".map_ico").attr("lon");
+          
+       
 
         const webLink=$(".web_link").attr("href")
        
@@ -80,7 +95,7 @@ const byOneService = {
           .each(async (index, element) => {
             const lat = $(element).attr("lat");
             const lon =$(element).attr("lon")
-            // console.log(nameByadd);
+          
             
 const branchObj = { };
             if (lat && lat.trim() !== "") {
@@ -88,11 +103,8 @@ const branchObj = { };
             }
                   
                   
-              if(lat){
-                branchObj.title=titleGet[index]
-              }else{
-                branchObj.title=null
-              }
+            
+             
                   
                  
                   if(phone[index]){
@@ -115,11 +127,16 @@ const branchObj = { };
                   }else{
                     branchObj.longitud=null
                   }
+                  if(lat){
+                    branchObj.title=titleGet[index]
+                  }else{
+                    branchObj.title=null
+                  }
                   
-                    branchObj.lat = $(element[index]).attr("lat");
+                    // branchObj.lat = $(element[index]).attr("lat");
                     branchObjArray.push(branchObj);
                     
-                    resObj.activity = activity;
+                    resObj.activity = activArray;
                     resObj.branches = branchObjArray;
                     resArr.push(resObj);
                  
@@ -127,12 +144,37 @@ const branchObj = { };
 
               
             
-            resultArray.push(resObj);
+              
+            
+            
           })
           .get();
-        
+          if(resObj.branches)
+        resultArray.push(resObj);
       }
+      await useCompanys()
 
+    //  for await (const organization of resultArray){
+    //   await addTableOrganization(organization.name,organization.webLink)
+
+       
+
+    //  }
+    //     const resGlobObj=await organizationTableId()
+    //    for await (const globObjItems of resGlobObj[0]){
+    //    const findRes= resultArray.find((el)=>el.name===globObjItems.name)
+    //     await addTableActivity(globObjItems.id,findRes.activity)
+    //     for await (const branch of findRes.branches){
+    //       console.log("1",globObjItems.id,"2",branch.telephone,"3",branch.adres,"4",branch.latitud,"5",branch.longitud,"6",branch.title);
+    //       await addTableBranch(globObjItems.id,branch.telephone,branch.adres,branch.latitud,branch.longitud,branch.title)
+          
+    //     }
+        
+    //    }
+
+       const resultActivityTable=await getLinksCompany()
+      // console.log(resultActivityTable[0][resultActivityTable[0].length-2]);
+    
       return resultArray;
     } catch (error) {
       console.error(error);
