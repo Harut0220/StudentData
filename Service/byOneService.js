@@ -7,8 +7,8 @@ import fetch from "node-fetch";
 const pool = mysql.createPool({
   host: "localhost",
   user: "root",
-  password: "H20021996",
-  database: "spyurcompany",
+  password: "root",
+  database: "companys",
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
@@ -37,7 +37,7 @@ const byOneService = {
 
 
       const linksArray = [
-        "/am/companies/acba-bank/1951",
+        "/am/companies/a1-project-company/43238/",
         "/am/companies/ham-tea-production-company/84050",
       ];
       const resultArray = [];
@@ -154,6 +154,8 @@ const branchObj = { };
       }
       await useCompanys()
 
+
+      //add DB
     //  for await (const organization of resultArray){
     //   await addTableOrganization(organization.name,organization.webLink)
 
@@ -163,17 +165,23 @@ const branchObj = { };
     //     const resGlobObj=await organizationTableId()
     //    for await (const globObjItems of resGlobObj[0]){
     //    const findRes= resultArray.find((el)=>el.name===globObjItems.name)
-    //     await addTableActivity(globObjItems.id,findRes.activity)
+      
+    //    for await (const activ of findRes.activity){
+    //     await addTableActivity(globObjItems.id,activ)
+    //    }
+        
     //     for await (const branch of findRes.branches){
-    //       console.log("1",globObjItems.id,"2",branch.telephone,"3",branch.adres,"4",branch.latitud,"5",branch.longitud,"6",branch.title);
+         
     //       await addTableBranch(globObjItems.id,branch.telephone,branch.adres,branch.latitud,branch.longitud,branch.title)
           
     //     }
         
     //    }
+       //add DB
 
-       const resultActivityTable=await getLinksCompany()
-      // console.log(resultActivityTable[0][resultActivityTable[0].length-2]);
+
+       const resultActivityTable=await organizationTableId()
+      console.log(resultActivityTable);
     
       return resultArray;
     } catch (error) {
