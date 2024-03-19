@@ -1,4 +1,4 @@
-import { activityTableId, addTableActivity, addTableBranch, addTableOrganization, getLinksCompany, organizationTableId, tableCompany, useCompanys, useDatabaseCompanyDB } from "../Database/Controller.js";
+import { addTableActivity, addTableBranch, addTableOrganization,addWebLink,createDatabase,deleteDatabase,organizationTableId,tableBranches,tableCompanyActivity,tableOrganization,tableWebLink,useCompanys} from "../Database/Controller.js";
 // import { executeQuery } from "./companyService.js";
 import mysql from "mysql2";
 import cheerio, { html } from "cheerio";
@@ -152,31 +152,47 @@ const branchObj = { };
           if(resObj.branches)
         resultArray.push(resObj);
       }
-      await useCompanys()
+      
 
 
       //add DB
-    //  for await (const organization of resultArray){
-    //   await addTableOrganization(organization.name,organization.webLink)
+      await deleteDatabase()
+      await createDatabase()
+      await useCompanys()
+      await tableOrganization()
+      await tableWebLink()
+      await tableCompanyActivity()
+      await tableBranches()
 
-       
-
-    //  }
-    //     const resGlobObj=await organizationTableId()
-    //    for await (const globObjItems of resGlobObj[0]){
-    //    const findRes= resultArray.find((el)=>el.name===globObjItems.name)
       
-    //    for await (const activ of findRes.activity){
-    //     await addTableActivity(globObjItems.id,activ)
-    //    }
+     for await (const organization of resultArray){
+      await addTableOrganization(organization.name)
+
+      
+
+     }
+     
+        const resGlobObj=await organizationTableId()
+       for await (const globObjItems of resGlobObj[0]){
+       const findRes= resultArray.find((el)=>el.name===globObjItems.name)
+      
+        // for await (const link of findRes.webLink){
+          console.log(findRes.webLink);
+        await addWebLink(globObjItems.id,findRes.webLink)
+       
+      // }
+       
+       for await (const activ of findRes.activity){
+        await addTableActivity(globObjItems.id,activ)
+       }
         
-    //     for await (const branch of findRes.branches){
+        for await (const branch of findRes.branches){
          
-    //       await addTableBranch(globObjItems.id,branch.telephone,branch.adres,branch.latitud,branch.longitud,branch.title)
+          await addTableBranch(globObjItems.id,branch.telephone,branch.adres,branch.latitud,branch.longitud,branch.title)
           
-    //     }
+        }
         
-    //    }
+       }
        //add DB
 
 

@@ -119,7 +119,39 @@ export const getLinksPagesDb = async () => {
  
 };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 //level three
+export const deleteDatabase=async ()=>{
+  try {
+    const result=await pool.query(`DROP DATABASE companys`)
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+
+
+export const createDatabase=async()=>{
+  try {
+    const result =await pool.query(`CREATE DATABASE companys`)
+  } catch (error) {
+    console.error(error)
+  }
+}
 
 export const useCompanys=async ()=>{
   try {
@@ -130,12 +162,11 @@ export const useCompanys=async ()=>{
 } 
 
 
-export const tableCompany=async ()=>{
+export const tableOrganization=async ()=>{
   try {
     const results = await pool.query(`CREATE TABLE organization (
       id INT AUTO_INCREMENT PRIMARY KEY,
-      name VARCHAR(1000) ,
-      webLink VARCHAR(255)
+      name VARCHAR(1000) 
   );`);
   } catch (error) {
     console.error(error)
@@ -145,7 +176,7 @@ export const tableCompany=async ()=>{
 export const addTableOrganization=async (name,webLink)=>{
   try {
     const results = await pool.query(
-      `INSERT INTO organization(name,webLink) VALUES('${name}','${webLink}')`
+      `INSERT INTO organization(name) VALUES('${name}')`
     );
   } catch (error) {
     console.error(error)
@@ -157,6 +188,28 @@ export const organizationTableId=async()=>{
    
     const result=await pool.query(`SELECT * FROM organization;`)
     return result
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+export const tableWebLink=async()=>{
+  try {
+    const result = await pool.query(
+      `CREATE TABLE webLink(
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        organization_id INT,
+        webLink VARCHAR(100)
+      );`
+    )
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+export const addWebLink=async (organization_id,webLink)=>{
+  try {
+    const result =await pool.query(`INSERT INTO webLink(organization_id,webLink) VALUES('${organization_id}','${webLink}');`)
   } catch (error) {
     console.error(error)
   }
@@ -198,7 +251,7 @@ export const activityTableId=async()=>{
 
 
 
-export const tableCompanyBranches=async()=>{
+export const tableBranches=async()=>{
   try {
     const results = await pool.query(`CREATE TABLE branch (
       id INT AUTO_INCREMENT PRIMARY KEY,
@@ -234,6 +287,40 @@ export const getLinksCompany=async()=>{
     console.error(error)
   }
 }
+
+
+// export const deleteOrganization=async ()=>{
+//   try {
+//     const results = await pool.query(`TRUNCATE organization;`);
+//   } catch (error) {
+//     console.error(error)
+//   }
+// }
+
+
+// export const deleteActivity=async ()=>{
+//   try {
+//     const results = await pool.query(`TRUNCATE activity;`);
+//   } catch (error) {
+//     console.error(error)
+//   }
+// }
+
+// export const deleteWebLink=async ()=>{
+//   try {
+//     const results = await pool.query(`TRUNCATE webLink;`);
+//   } catch (error) {
+//     console.error(error)
+//   }
+// }
+
+// export const deleteBranchs=async ()=>{
+//   try {
+//     const results = await pool.query(`TRUNCATE branch;`);
+//   } catch (error) {
+//     console.error(error)
+//   }
+// }
 //level three
 
 
