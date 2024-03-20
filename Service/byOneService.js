@@ -1,4 +1,4 @@
-import { addTableActivity, addTableBranch, addTableOrganization,addWebLink,createDatabase,deleteDatabase,organizationTableId,tableBranches,tableCompanyActivity,tableOrganization,tableWebLink,useCompanys} from "../Database/Controller.js";
+import { addTableActivity, addTableBranch, addTableOrganization,addWebLink,createDatabase,deleteDatabase,getActivityTable,getBranchTable,getCompanyLinks,getOrganizationTable,getWebLinkTable,tableBranches,tableCompanyActivity,tableOrganization,tableWebLink,useCompanys, useDatabaseCompanyDB} from "../Database/Controller.js";
 // import { executeQuery } from "./companyService.js";
 import mysql from "mysql2";
 import cheerio, { html } from "cheerio";
@@ -7,7 +7,7 @@ import fetch from "node-fetch";
 const pool = mysql.createPool({
   host: "localhost",
   user: "root",
-  password: "root",
+  password: "H20021996",
   database: "companys",
   waitForConnections: true,
   connectionLimit: 10,
@@ -36,14 +36,20 @@ const byOneService = {
 
 
 
-      const linksArray = [
-        "/am/companies/a1-project-company/43238/",
-        "/am/companies/ham-tea-production-company/84050",
-      ];
+      // const linksArray = [
+      //   "/am/companies/aaaa-accounting-center-of-training-and-publishing/3385",
+      //   "/am/companies/ham-tea-production-company/84050",
+      //   "/am/companies/aaa/36862",
+      //   "/am/companies/v8am/33706"
+      // ];
+
+      await useDatabaseCompanyDB()
+      const linksArray=await getCompanyLinks()
+
       const resultArray = [];
-      let count=0;
-      for await (const link of linksArray) {
-        const resultByComanyName = await fetch(`https://www.spyur.am${link}`);
+  
+      for await (const link of linksArray[0]) {
+        const resultByComanyName = await fetch(`https://www.spyur.am${link.company_link}`);//company_link
         const html = await resultByComanyName.text();
         const $ = cheerio.load(html);
         const activArray=[]
@@ -58,8 +64,22 @@ const byOneService = {
           }
           
           
+       const status =$("#buffer50comment>span").text()
+       const checker="ՉԻ ԳՈՐԾՈՒՄ"
+      //  if(!(status===checker)){
+
        
-        const name = $("h1").text();
+       
+        const name = $("h1").map((index,element)=>{
+          const res=$(element).text()
+         
+          return res
+        }).get();
+        
+        
+        
+        
+        
         const address = $(".address_block")
           .map((index, element) => $(element).text())
           .get();
@@ -74,21 +94,65 @@ const byOneService = {
        
 
         const webLink=$(".web_link").attr("href")
-       
+      
         
         const nameByAddressArrayOne = [];
 
         const branchObjArray = [];
         const resArr = [];
+       
         const resObj = {
-          name,
-          
+         
         };
-        if(webLink[8]!=="s"){
+        const searchRes=name[0].search('"')
+       
+        
+        if(searchRes===-1){
+          resObj.name=name[0]
+        }else{
+         const resultArr= name[0].split('"')
+
+        
+         
+          const oneArray= resultArr[0].split("")
+            oneArray.push("'")
+            const res=oneArray.join("")
+            resultArr.shift()
+            resultArr.unshift(res)
+          
+          
+            const twoArray= resultArr[resultArr.length-1].split("")
+            twoArray.unshift("'")
+            const resTwo=twoArray.join("")
+            resultArr.pop()
+            resultArr.push(resTwo)
+         
+            
+        
+        
+         const resultName=resultArr.join("")
+         console.log("mtnuma objecti mej",resultName);
+         resObj.name=resultName[0]
+        }
+
+        if(webLink){
+
+        
+        if (webLink.length>8) {
+          if(webLink[8]!=="s" && webLink[12]!=="s"){
           resObj.webLink=webLink
+         
         }else{
           resObj.webLink=null
         }
+       
+      }else{
+        resObj.webLink=null
+      }
+    }else{
+      resObj.webLink=null
+    }
+        
         const nameByAddress = $(
           ".map_ico"
         )
@@ -98,9 +162,6 @@ const byOneService = {
           
             
 const branchObj = { };
-            if (lat && lat.trim() !== "") {
-              
-            }
                   
                   
             
@@ -151,7 +212,7 @@ const branchObj = { };
           .get();
           if(resObj.branches)
         resultArray.push(resObj);
-      }
+      // }
       
 
 
@@ -166,18 +227,20 @@ const branchObj = { };
 
       
      for await (const organization of resultArray){
+      console.log(organization.name);
       await addTableOrganization(organization.name)
 
       
 
      }
      
-        const resGlobObj=await organizationTableId()
+        const resGlobObj=await getOrganizationTable()
        for await (const globObjItems of resGlobObj[0]){
        const findRes= resultArray.find((el)=>el.name===globObjItems.name)
       
         // for await (const link of findRes.webLink){
-          console.log(findRes.webLink);
+       
+        
         await addWebLink(globObjItems.id,findRes.webLink)
        
       // }
@@ -193,11 +256,18 @@ const branchObj = { };
         }
         
        }
-       //add DB
+    //    //add DB
+      }
 
+       const resultOrganizationTable=await getOrganizationTable()
+       const resultWebLink=await getWebLinkTable()
+       const resultActivity=await getActivityTable()
+       const resultBranchs=await getBranchTable()
 
-       const resultActivityTable=await organizationTableId()
-      console.log(resultActivityTable);
+      //  console.log("arganizationTable",resultOrganizationTable);
+      //  console.log("webLinkTable",resultWebLink);
+      //  console.log("activityTable",resultActivity);
+      //  console.log("branchTable",resultBranchs);
     
       return resultArray;
     } catch (error) {

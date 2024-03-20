@@ -92,6 +92,15 @@ export const addCompanyLinks = async (linksArray) => {
   }
 };
 
+export const getCompanyLinks=async()=>{
+  try {
+    const result = await pool.query(`select * from company_links;`)
+    return result
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 export const storeQrToDB = async (
   nameCompany,
   address,
@@ -166,24 +175,24 @@ export const tableOrganization=async ()=>{
   try {
     const results = await pool.query(`CREATE TABLE organization (
       id INT AUTO_INCREMENT PRIMARY KEY,
-      name VARCHAR(1000) 
+      name VARCHAR(2000) 
   );`);
   } catch (error) {
     console.error(error)
   }
 }
 
-export const addTableOrganization=async (name,webLink)=>{
+export const addTableOrganization=async (name)=>{
   try {
     const results = await pool.query(
-      `INSERT INTO organization(name) VALUES('${name}')`
+      `INSERT INTO organization(name) VALUES("${name}");`
     );
   } catch (error) {
     console.error(error)
   }
 }
 
-export const organizationTableId=async()=>{
+export const getOrganizationTable=async()=>{
   try {
    
     const result=await pool.query(`SELECT * FROM organization;`)
@@ -215,6 +224,15 @@ export const addWebLink=async (organization_id,webLink)=>{
   }
 }
 
+export const getWebLinkTable=async ()=>{
+  try {
+    const result =await pool.query(`select * from webLink;`)
+    return result
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 export const tableCompanyActivity=async ()=>{
   try {
     const result=await pool.query(
@@ -240,7 +258,7 @@ export const addTableActivity=async (organization_id,activity_name)=>{
 }
 
 
-export const activityTableId=async()=>{
+export const getActivityTable=async()=>{
   try {
     const result=await pool.query(`SELECT * FROM activity;`)
     return result
@@ -279,7 +297,7 @@ export const addTableBranch=async (organization_id,telephone,address,latitude,lo
 
 
 
-export const getLinksCompany=async()=>{
+export const getBranchTable=async()=>{
   try {
     const results = await pool.query(`SELECT * FROM branch;`);
     return results
