@@ -6,7 +6,7 @@ import byOneController from "../Controller/byOneController.js";
 const productRouter = Router();
 
 // productRouter.get("/", productController.get);
-// productRouter.get("/company",productController.getCompanyName)
+productRouter.get("/company",productController.getCompanyName)
 // productRouter.get("/result",productController.getByName)
 productRouter.get("/linkbypage",productController.getBank)
 productRouter.get("/banks",productController.getBanks)

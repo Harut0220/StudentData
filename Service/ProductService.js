@@ -1,268 +1,246 @@
 import cheerio, { html } from "cheerio";
 import fetch from "node-fetch";
 import axios from "axios";
-import { addLinks, getLinksPagesDb, storeQrToDB, useDatabase } from "../Database/Controller.js";
+import {
+  addLinks,
+  addTableActivity,
+  addTableBranch,
+  addTableOrganization,
+  addWebLink,
+  getLinksPagesDb,
+  getOrganizationTable,
+  storeQrToDB,
+  useDatabase,
+} from "../Database/Controller.js";
 // import { each } from "cheerio/lib/api/traversing.js";
 // import { slice } from "cheerio/lib/api/traversing.js";
 
 const productService = {
-  spyurController:async ()=>{
-    try {
-      let array=[]
-      let resPagesArray=[]
-      // levelOne
-      const levelOne=await productService.getBank()
-      
-      // levelOne
-
-
-      //levelTwo tareri arajin ejer@
-     
-      const levelTwo=await productService.getCompanyNames(levelOne)
-
-      //levelTwo tareri arajin ejer@
-
-
-
-
-      //amen meki next
-      
-     const getLinkBypage = async (linkPage)=>{
-          const mainRes=await fetch(`https://www.spyur.am${linkPage}`)
-          const html = await mainRes.text();
-          const $ = cheerio.load(html);
-          
-          array.push($(".next_page").attr("href"))
-       
-          if($(".next_page").attr("href")){
-            
-            const resf= await getLinkBypage($(".next_page").attr("href"))
-            return resf
-          }else{return array}
-        
-        }
-        
-      //amen meki next
-      
-      
-
-
-
-    const resPagesOne=await Promise.all(levelTwo.map(async (el)=>{
-     const getPageOnes=await getLinkBypage(el)
-     return getPageOnes
-     
-     }))
-
-     const linksByAllPages=resPagesOne[resPagesOne.length-1];
-
-     const dbSndlinksByAllPages=(arr)=>{
-      try {
-        addLinks(arr)
-      } catch (error) {
-        console.error(error)
-      }
-     }
-
-     const resConcat=levelTwo.concat(linksByAllPages)
-     const filresArray=resConcat.filter((el)=> el !== undefined)
-    //  console.log(filresArray);
-     await useDatabase()
-
-     await dbSndlinksByAllPages(filresArray)
-
-
-      //levelThree
-    // const levelThreeArrayOne=[]
-    // const levelThreeArrayTwo=[]
-    //   const levelThreeOne=await productService.getByPageOne(levelTwoArrReversOne)
-    //   const levelThreeTwo=await productService.getByPageTwo(levelTwoArrReversTwo)
-     
-      
-      
-      
-      
-      
-    //   for(let iOne=0;iOne<levelThreeOne.length;iOne++){
-    //     for(let index=0;index<levelThreeOne[iOne].length;index++){
-    //       levelThreeArrayOne.push(levelThreeOne[iOne][index])
-    //     }
-    //   }
-
-    //   for(let i=0;i<levelThreeTwo.length;i++){
-    //     for(let index=0;index<levelThreeTwo[i].length;index++){
-    //       levelThreeArrayTwo.push(levelThreeTwo[i][index])
-    //     }
-    //   }
-     
-    //   const resultArray=levelThreeArrayOne.concat(levelThreeArrayTwo)
-      
-    //   //levelThree
-
-
-
-    //   //levelFour
-  
-    //   const levelFour=await productService.getDataByPage(resultArray)
-     
-      
-    } catch (error) {
-      console.error(error)
-    }
-  },
-  getBank: async () => {
-    try {
-      const mainPage = await fetch("https://www.spyur.am/am/alphabet/");
-
-      const html = await mainPage.text();
-      const $ = cheerio.load(html);
-      
-      const links = [];
-      $(".col-lg-2>a").each((index, element) => {
-        const link = $(element).attr("href");
-       
-        if (link && link.trim() !== "") {
-          links.unshift(link);
-        }
-      });
-   
-      
-      return links;
-    } catch (error) {}
-  },
-  getCompanyNames: async (urls) => {
-   
-    const yellow_page_array = urls.filter((el) => {
-      return el[4] === "y" && el[23] !== "n";
-    });
-
-    
-   
+  getCompanyNames: async (lang, page, letter) => {
+    const linksArray = [];
     const resultArray=[]
-    const rrrrr = await Promise.all(yellow_page_array.map(async (link) => {
-      const mainPage = await fetch(`https://www.spyur.am/${link}`);
-      const html = await mainPage.text();
-      const $ = cheerio.load(html);
-      
-      return  [$(".paging>ul>li>.current_page").attr("href")]
-     
-  }));
-  rrrrr.map((el)=>{
-    resultArray.push(el[0])
-  })
-  
-  const filteredForUndefined=resultArray.filter((el)=> el !== undefined)
- 
-    return filteredForUndefined;
-  },
-  getByPageTwo: async (linkPage) => {
-   
-    try {
-      const rrrrr = await Promise.all(linkPage.map(async (link) => {
-        const mainPage = await fetch(`https://www.spyur.am/${link}`);
-        const html = await mainPage.text();
-        const $ = cheerio.load(html);
-    
-        return $(".row>.listing_container>#results_list_wrapper>a").map((index, element) => $(element).attr("href")).get();
-    }));
-
-    
-    return rrrrr
-
-      
-    } catch (error) {}
-  },
-  getDataByPage: async (linkCompanyLink) => {
-    try {
-     const data=await Promise.all(linkCompanyLink.map(async(el)=>{
-        const resultByComanyName = await fetch(
-        `https://www.spyur.am${el}`
-      );
-      const html = await resultByComanyName.text();
-      const $ = cheerio.load(html);
-     
-      const name = $("h1").text();
-      const address = $(".address_block").text().trim();
-      const phone = $(".call").text();
-      const category = $(".info_content>.text_block>.multilevel_list>li>ul>li>ul>li").text();
-      const lat = $("#map_canvas").attr("lat");
-      const lon = $("#map_canvas").attr("lon");
-      
-     
-      // await useDatabase();
-      // await storeQrToDB(name, address, phone, category, lat, lon);
-     
-    
-      return ({ name, address, phone,category,lat,lon});
-      }))
-    
-      return data
-      
-    } catch (error) {
-      console.error(error)
-    }
-  },
-  getBanks: async () => {
-    const mainPage = await fetch(
-      "https://www.spyur.am/am/home/advanced_search/?search=1&products_and_services=1&yp_cat3=0406&from=by_home"
+    const fetchResult = await fetch(
+      `https://www.spyur.am/${lang}/yellow_pages-${page}/alpha/${letter}/?from=home&tab=yello_p_am`
     );
 
-    const html = await mainPage.text();
-    const $ = cheerio.load(html);
-    
-    const links = [];
+    const html = await fetchResult.text();
+    const $1 = cheerio.load(html);
 
-    
-    $(".results_list>a").each((index, element) => {
-      const link = $(element).attr("href");
-     
-      if (link && link.trim() !== "") {
-        links.unshift(link);
+    const links = $1(".results_list>a")
+      .each((index, element) => {
+        const link = $1(element).attr("href");
+        linksArray.push(link);
+      })
+      .get();
+
+    for await (const link of linksArray) {
+      const fetchCompany = await fetch(`https://www.spyur.am${link}`);
+      const html = await fetchCompany.text();
+      const $ = cheerio.load(html);
+      const activArray = [];
+      const activity = $(".multilevel_list>li>ul>li>ul>li>a")
+        .map((index, element) => $(element).text())
+        .get();
+      if (activity[activity.length - 1]) {
+        activArray.push(activity[activity.length - 1]);
       }
-    });
-    const dataResult = [];
-    const res = await productService.banksByOne(links);
-  return res
-  },
-  
+      if (activity[activity.length - 2]) {
+        activArray.push(activity[activity.length - 2]);
+      }
 
+      const status = $("#buffer50comment>span").text();
+      const checker = "ՉԻ ԳՈՐԾՈՒՄ";
+      //  if(!(status===checker)){
 
-    // const loopLinks = links.map(async (linkCompanyName) => {
-    //   const resultByComanyName = await fetch(
-    //     `https://www.spyur.am${linkCompanyName}`
-    //   );
-    //   const html = await resultByComanyName.text();
-    //   const $ = cheerio.load(html);
-     
-    //   const name = $("h1").text();
-    //   const address = $(".address_block").text().trim();
-    //   const phone = $(".call").text();
-    //   const category = $(
-    //     ".info_content>.text_block>.multilevel_list>li>ul>li>ul>li"
-    //   ).text();
-    //   const lat = $("#map_canvas").attr("lat");
-    //   const lon = $("#map_canvas").attr("lon");
+      const name = $("h1")
+        .map((index, element) => {
+          const res = $(element).text();
 
-    //   const data = {
-    //     name,
-    //     address,
-    //     phone,
-    //     category,
-    //     lat,
-    //     lon,
-    //   };
-    // });
-   
-  
- 
-  getLinkBypageLoop:async ()=>{
-    try {
-      
-    } catch (error) {
-      console.error(error)
+          return res;
+        })
+        .get();
+
+      const address = $(".address_block")
+        .map((index, element) => $(element).text())
+        .get();
+      const phone = $(".phone_info")
+        .map((index, element) => $(element).text())
+        .get();
+
+      const titleGet = $(".contacts_list>.branch_block>.contact_subtitle")
+        .map((index, element) => {
+          return $(element).text();
+        })
+        .get();
+
+      const webLink = $(".web_link").attr("href");
+
+      const nameByAddressArrayOne = [];
+
+      const branchObjArray = [];
+      const resArr = [];
+
+      const resObj = {};
+      const searchRes = name[0].search('"');
+
+      if (searchRes === -1) {
+        resObj.name = name[0];
+      } else {
+        const resultArr = name[0].split('"');
+
+        const oneArray = resultArr[0].split("");
+        oneArray.push("'");
+        const res = oneArray.join("");
+        resultArr.shift();
+        resultArr.unshift(res);
+
+        const twoArray = resultArr[resultArr.length - 1].split("");
+        twoArray.unshift("'");
+        const resTwo = twoArray.join("");
+        resultArr.pop();
+        resultArr.push(resTwo);
+
+        const resultName = resultArr.join("");
+        console.log("mtnuma objecti mej", resultName);
+        resObj.name = resultName[0];
+      }
+
+      if (webLink) {
+        if (webLink.length > 8) {
+          if (webLink[8] !== "s" && webLink[12] !== "s") {
+            resObj.webLink = webLink;
+          } else {
+            resObj.webLink = null;
+          }
+        } else {
+          resObj.webLink = null;
+        }
+      } else {
+        resObj.webLink = null;
+      }
+
+      const nameByAddress = $(".map_ico")
+        .each(async (index, element) => {
+          const lat = $(element).attr("lat");
+          const lon = $(element).attr("lon");
+
+          const branchObj = {};
+
+          if (phone[index]) {
+            branchObj.telephone = phone[index];
+          } else {
+            branchObj.telephone = null;
+          }
+          if (address[index]) {
+            branchObj.adres = address[index];
+          } else {
+            branchObj.adres = null;
+          }
+          if (lat) {
+            branchObj.latitud = lat;
+          } else {
+            branchObj.latitud = null;
+          }
+          if (lon) {
+            branchObj.longitud = lon;
+          } else {
+            branchObj.longitud = null;
+          }
+          if (lat) {
+            branchObj.title = titleGet[index];
+          } else {
+            branchObj.title = null;
+          }
+
+          branchObjArray.push(branchObj);
+
+          resObj.activity = activArray;
+          resObj.branches = branchObjArray;
+          resArr.push(resObj);
+        })
+        .get();
+      if (resObj.branches) resultArray.push(resObj);
     }
-  }
 
+
+    //DB
+    const resultOrganizationIf=await getOrganizationTable()
+
+    if (resultOrganizationIf) {
+      
+    
+
+
+
+
+    for await (const organization of resultArray){
+      console.log(organization.name);
+      await addTableOrganization(organization.name)
+
+      
+
+     }
+     
+        const resGlobObj=await getOrganizationTable()
+        console.log(resGlobObj);
+       for await (const globObjItems of resultArray ){
+       const findRes= resGlobObj[0].find((el)=>el.name===globObjItems.name)
+       
+        
+        await addWebLink(findRes.id,globObjItems.webLink)
+       
+  
+       
+       for await (const activ of globObjItems.activity){
+        await addTableActivity(findRes.id,activ)
+       }
+        
+        for await (const branch of globObjItems.branches){
+         
+          await addTableBranch(findRes.id,branch.telephone,branch.adres,branch.latitud,branch.longitud,branch.title)
+          
+        }
+        
+       }}else{
+
+
+
+        for await (const organization of resultArray){
+          console.log(organization.name);
+          await addTableOrganization(organization.name)
+    
+          
+    
+         }
+         
+            const resGlobObj=await getOrganizationTable()
+            console.log(resGlobObj);
+           for await (const globObjItems of resGlobObj[0]){
+           const findRes= resultArray.find((el)=>el.name===globObjItems.name)
+           
+            
+            await addWebLink( globObjItems.id,findRes.webLink)
+           
+      
+           
+           for await (const activ of findRes.activity){
+            await addTableActivity(globObjItems.id,activ)
+           }
+            
+            for await (const branch of findRes.branches){
+             
+              await addTableBranch(globObjItems.id,branch.telephone,branch.adres,branch.latitud,branch.longitud,branch.title)
+              
+            }
+            
+           }
+
+       }
+
+       //DB
+
+    return resultArray
+  },
 };
 
 export default productService;
