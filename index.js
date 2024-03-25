@@ -20,7 +20,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 app.set("views", path.join(__dirname, "Views"));
 app.use(express.static(path.join(__dirname, "Public")));
 
-app.use("/api/product", productRouter);
+app.use("/api", productRouter);
 
 
 
