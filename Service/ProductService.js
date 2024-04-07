@@ -86,29 +86,13 @@ const productService = {
         const resArr = [];
 
         const resObj = {};
-        const searchRes = name[0].search('"');
+        let result = name[0].replace(/["'()]/g, '');
 
-        if (searchRes === -1) {
-          resObj.name = name[0];
-        } else {
-          const resultArr = name[0].split('"');
-
-          const oneArray = resultArr[0].split("");
-          oneArray.push("'");
-          const res = oneArray.join("");
-          resultArr.shift();
-          resultArr.unshift(res);
-
-          const twoArray = resultArr[resultArr.length - 1].split("");
-          twoArray.unshift("'");
-          const resTwo = twoArray.join("");
-          resultArr.pop();
-          resultArr.push(resTwo);
-
-          const resultName = resultArr.join("");
+        
+       
+            resObj.name = result;
+          resObj.letter=letter
          
-          resObj.name = resultName[0];
-        }
 
         if (webLink) {
           if (webLink.length > 8) {
@@ -177,7 +161,7 @@ const productService = {
       if (resultOrganizationIf) {
         for await (const organization of resultArray) {
        
-          await addTableOrganization(organization.name);
+          await addTableOrganization(organization.name,organization.letter);
         }
 
         const resGlobObj = await getOrganizationTable();
@@ -223,7 +207,7 @@ const productService = {
       } else {
         for await (const organization of resultArray) {
         
-          await addTableOrganization(organization.name);
+          await addTableOrganization(organization.name,organization.letter);
         }
 
         const resGlobObj = await getOrganizationTable();
