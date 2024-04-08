@@ -20,225 +20,310 @@ import {
 // import { slice } from "cheerio/lib/api/traversing.js";
 
 const productService = {
-  getCompanyNames: async (lang, page, letter) => {
+  getCompanyNames: async (lang_am, page, letter_am) => {
     try {
-      const linksArray = [];
-      const resultArray = [];
-      const fetchResult = await fetch(
-        `https://www.spyur.am/${lang}/yellow_pages-${page}/alpha/${letter}/?from=home&tab=yello_p_am`
-      );
+      const fetchDinamice = async (lang_am, page, letter_am) => {
+        // console.log(page);
+        const linksArrayAm = [];
 
-      const html = await fetchResult.text();
-      const $1 = cheerio.load(html);
+        const fetchResult = await fetch(
+          `https://www.spyur.am/${lang_am}/yellow_pages-${page}/alpha/${letter_am}/?from=home&tab=yello_p_am`
+        );
 
-      const links = $1(".results_list>a")
-        .each((index, element) => {
-          const link = $1(element).attr("href");
-          linksArray.push(link);
-        })
-        .get();
+        const html = await fetchResult.text();
+        const $1 = cheerio.load(html);
 
-      for await (const link of linksArray) {
-        const fetchCompany = await fetch(`https://www.spyur.am${link}`);
-        const html = await fetchCompany.text();
-        const $ = cheerio.load(html);
-        const activArray = [];
-        const activity = $(".multilevel_list>li>ul>li>ul>li>a")
-          .map((index, element) => $(element).text())
-          .get();
-        if (activity[activity.length - 1]) {
-          activArray.push(activity[activity.length - 1]);
-        }
-        if (activity[activity.length - 2]) {
-          activArray.push(activity[activity.length - 2]);
-        }
-
-        const status = $("#buffer50comment>span").text();
-        const checker = "ՉԻ ԳՈՐԾՈՒՄ";
-        //  if(!(status===checker)){
-
-        const name = $("h1")
-          .map((index, element) => {
-            const res = $(element).text();
-
-            return res;
+        const links = $1(".results_list>a")
+          .each((index, element) => {
+            const link = $1(element).attr("href");
+            linksArrayAm.push(link);
           })
           .get();
 
-        const address = $(".address_block")
-          .map((index, element) => $(element).text())
-          .get();
-        const phone = $(".phone_info")
-          .map((index, element) => $(element).text())
-          .get();
+        const linkArrRu = [];
+        const linkArrEn = [];
+        for (let indexLink = 0; indexLink < linksArrayAm.length; indexLink++) {
+          const spliteRu = linksArrayAm[indexLink].split("/");
+          spliteRu[1] = "ru";
+          const resultRuArray = spliteRu.join("/");
+          linkArrRu.push(resultRuArray);
+        }
+        for (let indEn = 0; indEn < linksArrayAm.length; indEn++) {
+          const spliteEn = linksArrayAm[indEn].split("/");
+          spliteEn[1] = "en";
+          const resultEnArray = spliteEn.join("/");
+          linkArrEn.push(resultEnArray);
+        }
+        // console.log("hayeren",linksArrayAm);
+        // console.log("ruseren",linkArrRu);
+        // console.log("angleren",linkArrEn);
 
-        const titleGet = $(".contacts_list>.branch_block>.contact_subtitle")
-          .map((index, element) => {
-            return $(element).text();
-          })
-          .get();
+        const linksFuncBylangArrays = async (linksArraybyLang) => {
+          const resultArray = [];
+          for await (const link of linksArraybyLang) {
+            const fetchCompany = await fetch(`https://www.spyur.am${link}`);
+            const html = await fetchCompany.text();
+            const $ = cheerio.load(html);
+            const activArray = [];
+            const activity = $(".multilevel_list>li>ul>li>ul>li>a")
+              .map((index, element) => $(element).text())
+              .get();
+            const regexActiv = /'/;
+            if (activity[activity.length - 1]) {
+              activArray.push(activity[activity.length - 1].replace(/'/, ""));
+            }
+            if (activity[activity.length - 2]) {
+              // const resActivReg=regexActiv.test(activity[activity.length - 2])
+              activArray.push(activity[activity.length - 2].replace(/'/, ""));
+            }
 
-        const webLink = $(".web_link").attr("href");
+            const status = $("#buffer50comment>span").text();
 
-        const nameByAddressArrayOne = [];
+            const name = $("h1")
+              .map((index, element) => {
+                const res = $(element).text();
 
-        const branchObjArray = [];
-        const resArr = [];
+                return res;
+              })
+              .get();
 
-        const resObj = {};
-        let result = name[0].replace(/["'()]/g, '');
+            const address = $(".address_block")
+              .map((index, element) => $(element).text())
+              .get();
+            const phone = $(".phone_info")
+              .map((index, element) => $(element).text())
+              .get();
 
-        
-       
+            const titleGet = $(".contacts_list>.branch_block>.contact_subtitle")
+              .map((index, element) => {
+                return $(element).text();
+              })
+              .get();
+
+            const webLink = $(".web_link").attr("href");
+
+            const nameByAddressArrayOne = [];
+
+            const branchObjArray = [];
+            const resArr = [];
+
+            const resObj = {};
+            let result = name[0].replace(/["'()]/g, "");
             resObj.name = result;
-          resObj.letter=letter
-         
 
-        if (webLink) {
-          if (webLink.length > 8) {
-            if (webLink[8] !== "s" && webLink[12] !== "s") {
-              resObj.webLink = webLink;
+            if (webLink) {
+              if (webLink.length > 8) {
+                if (webLink[8] !== "s" && webLink[12] !== "s") {
+                  resObj.webLink = webLink;
+                } else {
+                  resObj.webLink = null;
+                }
+              } else {
+                resObj.webLink = null;
+              }
             } else {
               resObj.webLink = null;
             }
-          } else {
-            resObj.webLink = null;
+
+            const nameByAddress = $(".map_ico")
+              .each(async (index, element) => {
+                const lat = $(element).attr("lat");
+                const lon = $(element).attr("lon");
+
+                const branchObj = {};
+
+                if (phone[index]) {
+                  branchObj.telephone = phone[index];
+                } else {
+                  branchObj.telephone = null;
+                }
+                if (address[index]) {
+                  branchObj.adres = address[index];
+                } else {
+                  branchObj.adres = null;
+                }
+                if (lat) {
+                  branchObj.latitud = lat;
+                } else {
+                  branchObj.latitud = null;
+                }
+                if (lon) {
+                  branchObj.longitud = lon;
+                } else {
+                  branchObj.longitud = null;
+                }
+                if (lat) {
+                  branchObj.title = titleGet[index];
+                } else {
+                  branchObj.title = null;
+                }
+
+                branchObjArray.push(branchObj);
+                if (activArray[0] || activArray[1]) {
+                  resObj.activity = activArray;
+                } else {
+                  resObj.activity = null;
+                }
+
+                resObj.branches = branchObjArray;
+                resArr.push(resObj);
+              })
+              .get();
+
+            if (
+              resObj.branches &&
+              (status !== "ՉԻ ԳՈՐԾՈՒՄ") & (status !== "DOESN'T OPERATE") &&
+              status !== "НЕ ДЕЙСТВУЕТ"
+            ) {
+              resultArray.push(resObj);
+            }
           }
-        } else {
-          resObj.webLink = null;
-        }
 
-        const nameByAddress = $(".map_ico")
-          .each(async (index, element) => {
-            const lat = $(element).attr("lat");
-            const lon = $(element).attr("lon");
+          return resultArray;
+        };
 
-            const branchObj = {};
+        // arrayneri funkcianer@ kanchum enq stex
+        const armenian = await linksFuncBylangArrays(linksArrayAm).then(
+          (res) => {
+            return res;
+          }
+        );
+        const english = await linksFuncBylangArrays(linkArrEn).then((res) => {
+          return res;
+        });
+        const russian = await linksFuncBylangArrays(linkArrRu).then((res) => {
+          return res;
+        });
+        return [armenian, english, russian];
+      };
 
-            if (phone[index]) {
-              branchObj.telephone = phone[index];
-            } else {
-              branchObj.telephone = null;
-            }
-            if (address[index]) {
-              branchObj.adres = address[index];
-            } else {
-              branchObj.adres = null;
-            }
-            if (lat) {
-              branchObj.latitud = lat;
-            } else {
-              branchObj.latitud = null;
-            }
-            if (lon) {
-              branchObj.longitud = lon;
-            } else {
-              branchObj.longitud = null;
-            }
-            if (lat) {
-              branchObj.title = titleGet[index];
-            } else {
-              branchObj.title = null;
-            }
+      const resultArrayByOneAm = await fetchDinamice(
+        lang_am,
+        page,
+        letter_am
+      ).then((res) => {
+        return res;
+      });
 
-            branchObjArray.push(branchObj);
-            if (activArray[0] || activArray[1]) {
-              resObj.activity = activArray;
-            } else {
-              resObj.activity = null;
-            }
+      // console.log("ereq irar het",resultArrayByOneAm);
 
-            resObj.branches = branchObjArray;
-            resArr.push(resObj);
-          })
-          .get();
-        if (resObj.branches) resultArray.push(resObj);
-      }
+      const dbGlobalFunc = async (resultArrayByOneAm) => {
+
+
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+        // for await (const organization of resultArrayByOneAm[0]) {
+        //   const resultOrganizationIf = await getOrganizationTable();
+
+        //   if (resultOrganizationIf) {
+        //     for (let i = 0; i < resultArrayByOneAm[0].length; i++) {
+        //       await addTableOrganization(
+        //         resultArrayByOneAm[0][i].name,
+        //         resultArrayByOneAm[0][i].letter
+        //       );
+        //     }
+
+        //     const resGlobObj = await getOrganizationTable();
+
+        //     for await (const globObjItems of resultArrayByOneAm[0]) {
+        //       const findRes = resGlobObj[0].find(
+        //         (el) => el.name === globObjItems.name
+        //       );
+
+        //       if (globObjItems.webLink) {
+        //         await addWebLink(findRes.id, globObjItems.webLink);
+        //       }
+
+        //       if (globObjItems.activity) {
+        //         for await (const activ of globObjItems.activity) {
+        //           await addTableActivity(findRes.id, activ);
+        //         }
+        //       }
+
+        //       for await (const branch of globObjItems.branches) {
+        //         if (branch.title) {
+        //           await addTableBranch(
+        //             findRes.id,
+        //             branch.telephone,
+        //             branch.adres,
+        //             branch.latitud,
+        //             branch.longitud,
+        //             branch.title
+        //           );
+        //         } else {
+        //           await addTableBranch(
+        //             findRes.id,
+        //             branch.telephone,
+        //             branch.adres,
+        //             branch.latitud,
+        //             branch.longitud,
+        //             null
+        //           );
+        //         }
+        //       }
+        //     }
+        //   } else {
+        //     for (let ind = 0; ind < resultArrayByOneAm[0].length; ind++) {
+        //       await addTableOrganization(
+        //         resultArrayByOneAm[0][ind].name,
+        //         resultArrayByOneAm[0][ind].letter
+        //       );
+        //     }
+
+        //     const resGlobObj = await getOrganizationTable();
+
+        //     for await (const globObjItems of resGlobObj[0]) {
+        //       const findRes = resultArrayByOneAm[0].find(
+        //         (el) => el.name === globObjItems.name
+        //       );
+
+        //       await addWebLink(globObjItems.id, findRes.webLink);
+
+        //       for await (const activ of findRes.activity) {
+        //         await addTableActivity(globObjItems.id, activ);
+        //       }
+
+        //       for await (const branch of findRes.branches) {
+        //         await addTableBranch(
+        //           globObjItems.id,
+        //           branch.telephone,
+        //           branch.adres,
+        //           branch.latitud,
+        //           branch.longitud,
+        //           branch.title
+        //         );
+        //       }
+        //     }
+        //   }
+        // }
+        //DB
+      };
 
       //DB
-      const resultOrganizationIf = await getOrganizationTable();
+      dbGlobalFunc(resultArrayByOneAm);
 
-      if (resultOrganizationIf) {
-        for await (const organization of resultArray) {
-       
-          await addTableOrganization(organization.name,organization.letter);
-        }
-
-        const resGlobObj = await getOrganizationTable();
-        
-        for await (const globObjItems of resultArray) {
-          const findRes = resGlobObj[0].find(
-            (el) => el.name === globObjItems.name
-          );
-
-          if (globObjItems.webLink) {
-            await addWebLink(findRes.id, globObjItems.webLink);
-          }
-
-          if (globObjItems.activity) {
-            for await (const activ of globObjItems.activity) {
-              await addTableActivity(findRes.id, activ);
-            }
-          }
-
-          for await (const branch of globObjItems.branches) {
-            if(branch.title){
-              await addTableBranch(
-              findRes.id,
-              branch.telephone,
-              branch.adres,
-              branch.latitud,
-              branch.longitud,
-              branch.title
-            );
-            }else{
-              await addTableBranch(
-                findRes.id,
-                branch.telephone,
-                branch.adres,
-                branch.latitud,
-                branch.longitud,
-                null
-              );
-            }
-            
-          }
-        }
-      } else {
-        for await (const organization of resultArray) {
-        
-          await addTableOrganization(organization.name,organization.letter);
-        }
-
-        const resGlobObj = await getOrganizationTable();
-     
-        for await (const globObjItems of resGlobObj[0]) {
-          const findRes = resultArray.find(
-            (el) => el.name === globObjItems.name
-          );
-
-          await addWebLink(globObjItems.id, findRes.webLink);
-
-          for await (const activ of findRes.activity) {
-            await addTableActivity(globObjItems.id, activ);
-          }
-
-          for await (const branch of findRes.branches) {
-            await addTableBranch(
-              globObjItems.id,
-              branch.telephone,
-              branch.adres,
-              branch.latitud,
-              branch.longitud,
-              branch.title
-            );
-          }
-        }
-      }
-
-      //DB
-
-      return resultArray;
+      return resultArrayByOneAm;
     } catch (error) {
       console.error(error);
     }
@@ -259,13 +344,12 @@ const productService = {
           delete el.id;
           delete el.organization_id;
         });
-        if(resultWebLink[0]===undefined){
-          organiz.webLink=null
-        }else{
-          organiz.webLink=resultWebLink
+        if (resultWebLink[0] === undefined) {
+          organiz.webLink = null;
+        } else {
+          organiz.webLink = resultWebLink;
         }
-       
-        
+
         const resultActivity = await activity[0].filter((el) => {
           return el.organization_id === organiz.id;
         });
@@ -273,14 +357,12 @@ const productService = {
           resultActivity.map((el) => {
             delete el.id;
             delete el.organization_id;
-            
           });
-          if(resultActivity[0]===undefined){
-            organiz.activity=null
-          }else{
-            organiz.activity=resultActivity
+          if (resultActivity[0] === undefined) {
+            organiz.activity = null;
+          } else {
+            organiz.activity = resultActivity;
           }
-          
         }
 
         const resultBranchs = await branchs[0].filter((el) => {
@@ -289,12 +371,11 @@ const productService = {
         resultBranchs.map((el) => {
           delete el.id;
           delete el.organization_id;
-          
         });
-        if(resultBranchs[0]===undefined){
-          organiz.branchs=null
-        }else{
-          organiz.branchs=resultBranchs
+        if (resultBranchs[0] === undefined) {
+          organiz.branchs = null;
+        } else {
+          organiz.branchs = resultBranchs;
         }
         resultArray.push(organiz);
       }

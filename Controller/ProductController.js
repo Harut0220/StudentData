@@ -3,9 +3,9 @@ import productService from "../Service/ProductService.js";
 const productController = {
   getCompanyName: async (req, res) => {
     try {
-      const { lang, page, letter } = req.query;
+      const { lang_am, page, letter_am} = req.query;
 
-      const product = await productService.getCompanyNames(lang, page, letter);
+      const product = await productService.getCompanyNames(lang_am, page, letter_am);
       
   
       res.status(200).send(product); 
