@@ -175,18 +175,20 @@ export const tableOrganization=async ()=>{
   try {
     const results = await pool.query(`CREATE TABLE organization (
       id INT AUTO_INCREMENT PRIMARY KEY,
-      letter VARCHAR(5),
-      name VARCHAR(2000) 
+      name_am VARCHAR(2000),
+      name_en VARCHAR(2000),
+      name_ru VARCHAR(2000),
+      categore_id INT
   );`);
   } catch (error) {
     console.error(error)
   }
 }
 
-export const addTableOrganization=async (name,letter)=>{
+export const addTableOrganization=async (name_am,name_en,name_ru,categore_id)=>{
   try {
     const results = await pool.query(
-      `INSERT INTO organization(letter,name) VALUES("${letter}","${name}");`
+      `INSERT INTO organization(name_am,name_en,name_ru,categore_id) VALUES("${name_am}","${name_en}","${name_ru}","${categore_id}");`
     );
   } catch (error) {
     console.error(error)
@@ -209,7 +211,7 @@ export const tableWebLink=async()=>{
       `CREATE TABLE weblink(
         id INT AUTO_INCREMENT PRIMARY KEY,
         organization_id INT,
-        webLink VARCHAR(1000)
+        webLink_am VARCHAR(1000)
       );`
     )
   } catch (error) {
@@ -239,8 +241,9 @@ export const tableCompanyActivity=async ()=>{
     const result=await pool.query(
       `CREATE TABLE activity (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        organization_id INT,
-        activity_name varchar(1000)
+        activity_1_am varchar(1000),
+        activity_1_en varchar(1000),
+        activity_1_ru varchar(1000)
     );`
     )
   } catch (error) {
@@ -248,10 +251,10 @@ export const tableCompanyActivity=async ()=>{
   }
 } 
 
-export const addTableActivity=async (organization_id,activity_name)=>{
+export const addTableActivity=async (activity_1_am,activity_1_en,activity_1_ru,activity_2_am,activity_2_en,activity_2_ru)=>{
   try {
     const results = await pool.query(
-      `INSERT INTO activity(organization_id,activity_name) VALUES('${organization_id}','${activity_name}')`
+      `INSERT INTO activity(activity_1_am,activity_1_en,activity_1_ru) VALUES('${activity_1_am}','${activity_1_en}','${activity_1_ru}')`
     );
   } catch (error) {
     console.error(error)
@@ -276,20 +279,24 @@ export const tableBranches=async()=>{
       id INT AUTO_INCREMENT PRIMARY KEY,
       organization_id INT,
       telephone VARCHAR(1000),
-      address VARCHAR(1000),
+      address_am VARCHAR(1000),
+      address_en VARCHAR(1000),
+      address_ru VARCHAR(1000),
       latitude DECIMAL(10, 8),
       longitude DECIMAL(11, 8),
-      title varchar(255)
+      title_am varchar(255),
+      title_en varchar(255),
+      title_ru varchar(255)
   );`);
   } catch (error) {
     console.error(error)
   }
 }
 
-export const addTableBranch=async (organization_id,telephone,address,latitude,longitude,title)=>{
+export const addTableBranch=async (organization_id,telephone,address_am,address_en,address_ru,latitude,longitude,title_am,title_en,title_ru)=>{
   try {
     const results = await pool.query(
-      `INSERT INTO branch(organization_id,telephone,address,latitude,longitude,title) VALUES('${organization_id}','${telephone}','${address}','${latitude}','${longitude}','${title}')`
+      `INSERT INTO branch(organization_id,telephone,address_am,address_en,address_ru,latitude,longitude,title_am,title_en,title_ru) VALUES('${organization_id}','${telephone}','${address_am}','${address_en}','${address_ru}','${latitude}','${longitude}','${title_am}','${title_en}','${title_ru}')`
     );
   } catch (error) {
     console.error(error)
