@@ -211,7 +211,7 @@ export const tableWebLink=async()=>{
       `CREATE TABLE weblink(
         id INT AUTO_INCREMENT PRIMARY KEY,
         organization_id INT,
-        webLink_am VARCHAR(1000)
+        weblink_am VARCHAR(1000)
       );`
     )
   } catch (error) {
@@ -221,7 +221,7 @@ export const tableWebLink=async()=>{
 
 export const addWebLink=async (organization_id,webLink)=>{
   try {
-    const result =await pool.query(`INSERT INTO weblink(organization_id,webLink) VALUES('${organization_id}','${webLink}');`)
+    const result =await pool.query(`INSERT INTO weblink(organization_id,weblink_am) VALUES('${organization_id}','${webLink}');`)
   } catch (error) {
     console.error(error)
   }
@@ -239,11 +239,11 @@ export const getWebLinkTable=async ()=>{
 export const tableCompanyActivity=async ()=>{
   try {
     const result=await pool.query(
-      `CREATE TABLE activity (
+      `CREATE TABLE subCategorys (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        activity_1_am varchar(1000),
-        activity_1_en varchar(1000),
-        activity_1_ru varchar(1000)
+        subCategory_am varchar(1000),
+        subCategory_en varchar(1000),
+        subCategory_ru varchar(1000)
     );`
     )
   } catch (error) {
@@ -254,7 +254,7 @@ export const tableCompanyActivity=async ()=>{
 export const addTableActivity=async (activity_1_am,activity_1_en,activity_1_ru,activity_2_am,activity_2_en,activity_2_ru)=>{
   try {
     const results = await pool.query(
-      `INSERT INTO activity(activity_1_am,activity_1_en,activity_1_ru) VALUES('${activity_1_am}','${activity_1_en}','${activity_1_ru}')`
+      `INSERT INTO subCategorys(subCategory_am,subCategory_en,subCategory_ru) VALUES("${activity_1_am}","${activity_1_en}","${activity_1_ru}")`
     );
   } catch (error) {
     console.error(error)
@@ -264,7 +264,7 @@ export const addTableActivity=async (activity_1_am,activity_1_en,activity_1_ru,a
 
 export const getActivityTable=async()=>{
   try {
-    const result=await pool.query(`SELECT * FROM activity;`)
+    const result=await pool.query(`SELECT * FROM subCategorys;`)
     return result
   } catch (error) {
     console.error(error)

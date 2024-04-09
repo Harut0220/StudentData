@@ -208,10 +208,7 @@ const productService = {
         return res;
       });
 
-      // console.log("ereq irar het",resultArrayByOneAm);
-
       const dbGlobalFunc = async (resultArrayByOneAm) => {
-        // console.log(resultArrayByOneAm[0]);
         for (
           let i_organ = 0;
           i_organ < resultArrayByOneAm[0].length;
@@ -219,113 +216,167 @@ const productService = {
         ) {
           await useCompanys();
           // await tableOrganization()
-          console.log(resultArrayByOneAm[0][i_organ]);
-              if (resultArrayByOneAm[0][i_organ].activity[0]){
-                await addTableActivity(
-                  resultArrayByOneAm[0][i_organ].activity,
-                  resultArrayByOneAm[1][i_organ].activity,
-                  resultArrayByOneAm[2][i_organ].activity
-                );
-                
-              
-              } else {
-                await addTableActivity(
-                  null,null,null
-                );
-              }
-              const dbActivResult=await getActivityTable()
-              for await (const activDb of dbActivResult[0]){
-                if(activDb.activity_1_am===resultArrayByOneAm[0][i_organ].activity){
-                  await addTableOrganization(resultArrayByOneAm[0][i_organ].name,resultArrayByOneAm[1][i_organ].name,resultArrayByOneAm[2][i_organ].name,activDb.id)
-                }
-              }
-              
-            
+          const dbByActivFilter = await getActivityTable();
+          const filterActiv=await dbByActivFilter[0].find((el)=>{return el.subCategory_am===resultArrayByOneAm[0][i_organ].activity})
+
           
-
-          // const resultOrganizationIf = await getOrganizationTable();
-
-          // if (resultOrganizationIf) {
-          //   for (let i = 0; i < resultArrayByOneAm[0].length; i++) {
-          //     await addTableOrganization(
-          //       resultArrayByOneAm[0][i].name,
-          //       resultArrayByOneAm[0][i].letter
-          //     );
-          //   }
-
-          //   const resGlobObj = await getOrganizationTable();
-
-          //   for await (const globObjItems of resultArrayByOneAm[0]) {
-          //     const findRes = resGlobObj[0].find(
-          //       (el) => el.name === globObjItems.name
-          //     );
-
-          //     if (globObjItems.webLink) {
-          //       await addWebLink(findRes.id, globObjItems.webLink);
-          //     }
-
-          //     if (globObjItems.activity) {
-          //       for await (const activ of globObjItems.activity) {
-          //         await addTableActivity(findRes.id, activ);
-          //       }
-          //     }
-
-          //     for await (const branch of globObjItems.branches) {
-          //       if (branch.title) {
-          //         await addTableBranch(
-          //           findRes.id,
-          //           branch.telephone,
-          //           branch.adres,
-          //           branch.latitud,
-          //           branch.longitud,
-          //           branch.title
-          //         );
-          //       } else {
-          //         await addTableBranch(
-          //           findRes.id,
-          //           branch.telephone,
-          //           branch.adres,
-          //           branch.latitud,
-          //           branch.longitud,
-          //           null
-          //         );
-          //       }
-          //     }
-          //   }
-          // } else {
-          //   for (let ind = 0; ind < resultArrayByOneAm[0].length; ind++) {
-          //     await addTableOrganization(
-          //       resultArrayByOneAm[0][ind].name,
-          //       resultArrayByOneAm[0][ind].letter
-          //     );
-          //   }
-
-          //   const resGlobObj = await getOrganizationTable();
-
-          //   for await (const globObjItems of resGlobObj[0]) {
-          //     const findRes = resultArrayByOneAm[0].find(
-          //       (el) => el.name === globObjItems.name
-          //     );
-
-          //     await addWebLink(globObjItems.id, findRes.webLink);
-
-          //     for await (const activ of findRes.activity) {
-          //       await addTableActivity(globObjItems.id, activ);
-          //     }
-
-          //     for await (const branch of findRes.branches) {
-          //       await addTableBranch(
-          //         globObjItems.id,
-          //         branch.telephone,
-          //         branch.adres,
-          //         branch.latitud,
-          //         branch.longitud,
-          //         branch.title
-          //       );
-          //     }
-          //   }
-          // }
+          if (!filterActiv) {
+            await addTableActivity(
+              resultArrayByOneAm[0][i_organ].activity,
+              resultArrayByOneAm[1][i_organ].activity,
+              resultArrayByOneAm[2][i_organ].activity
+            );
+          }
         }
+
+        const dbActivResult = await getActivityTable();
+        for(let indorg=0;indorg<resultArrayByOneAm[0].length;indorg++) {
+          // for await(const funcArg of resultArrayByOneAm[0]){
+
+          const findActivbyOrgActivity = await dbActivResult[0].find((el) => {
+            // console.log("el.activity_1_am",el.activity_1_am);
+            // console.log("activArg.activity",activArg.activity);
+            return el.subCategory_am === resultArrayByOneAm[0][indorg].activity;
+          });
+          
+          if (findActivbyOrgActivity) {
+            const str = resultArrayByOneAm[1][indorg].name;
+            const result = str.replace(/'/g, "");
+            await addTableOrganization(
+              resultArrayByOneAm[0][indorg].name,
+              resultArrayByOneAm[1][indorg].name,
+              resultArrayByOneAm[2][indorg].name,
+              findActivbyOrgActivity.id
+            );
+          }
+        }
+
+        const resGlobObj = await getOrganizationTable();
+        // globObjItems
+        for (
+          let iByLang = 0;
+          iByLang < resultArrayByOneAm[0].length;
+          iByLang++
+        ) {
+          const findRes = resGlobObj[0].find((el) => {
+            return el.name_am === resultArrayByOneAm[0][iByLang].name;
+          });
+          for (
+            let indexbranch = 0;
+            indexbranch < resultArrayByOneAm[0][iByLang].branches.length;
+            indexbranch++
+          ) {
+            // console.log(resultArrayByOneAm[1][iByLang]);
+            const resultStreet = resultArrayByOneAm[1][iByLang].branches[
+              indexbranch
+            ].adres.replace(/["'()]/g, "");
+            await addTableBranch(
+              findRes.id,
+              resultArrayByOneAm[0][iByLang].branches[indexbranch].telephone,
+              resultArrayByOneAm[0][iByLang].branches[indexbranch].adres,
+              resultStreet,
+              resultArrayByOneAm[2][iByLang].branches[indexbranch].adres,
+              resultArrayByOneAm[2][iByLang].branches[indexbranch].latitud,
+              resultArrayByOneAm[2][iByLang].branches[indexbranch].longitud,
+              resultArrayByOneAm[0][iByLang].branches[indexbranch].title,
+              resultArrayByOneAm[1][iByLang].branches[indexbranch].title,
+              resultArrayByOneAm[2][iByLang].branches[indexbranch].title
+            );
+          }
+
+          if (resultArrayByOneAm[0][iByLang].webLink) {
+            await addWebLink(
+              findRes.id,
+              resultArrayByOneAm[0][iByLang].webLink
+            );
+          } else {
+            await addWebLink(findRes.id, null);
+          }
+        }
+
+        // const resultOrganizationIf = await getOrganizationTable();
+
+        // if (resultOrganizationIf) {
+        //   for (let i = 0; i < resultArrayByOneAm[0].length; i++) {
+        //     await addTableOrganization(
+        //       resultArrayByOneAm[0][i].name,
+        //       resultArrayByOneAm[0][i].letter
+        //     );
+        //   }
+
+        //   const resGlobObj = await getOrganizationTable();
+
+        //   for await (const globObjItems of resultArrayByOneAm[0]) {
+        //     const findRes = resGlobObj[0].find(
+        //       (el) => el.name === globObjItems.name
+        //     );
+
+        //     if (globObjItems.webLink) {
+        //       await addWebLink(findRes.id, globObjItems.webLink);
+        //     }
+
+        //     if (globObjItems.activity) {
+        //       for await (const activ of globObjItems.activity) {
+        //         await addTableActivity(findRes.id, activ);
+        //       }
+        //     }
+
+        //     for await (const branch of globObjItems.branches) {
+        //       if (branch.title) {
+        //         await addTableBranch(
+        //           findRes.id,
+        //           branch.telephone,
+        //           branch.adres,
+        //           branch.latitud,
+        //           branch.longitud,
+        //           branch.title
+        //         );
+        //       } else {
+        //         await addTableBranch(
+        //           findRes.id,
+        //           branch.telephone,
+        //           branch.adres,
+        //           branch.latitud,
+        //           branch.longitud,
+        //           null
+        //         );
+        //       }
+        //     }
+        //   }
+        // } else {
+        //   for (let ind = 0; ind < resultArrayByOneAm[0].length; ind++) {
+        //     await addTableOrganization(
+        //       resultArrayByOneAm[0][ind].name,
+        //       resultArrayByOneAm[0][ind].letter
+        //     );
+        //   }
+
+        //   const resGlobObj = await getOrganizationTable();
+
+        //   for await (const globObjItems of resGlobObj[0]) {
+        //     const findRes = resultArrayByOneAm[0].find(
+        //       (el) => el.name === globObjItems.name
+        //     );
+
+        //     await addWebLink(globObjItems.id, findRes.webLink);
+
+        //     for await (const activ of findRes.activity) {
+        //       await addTableActivity(globObjItems.id, activ);
+        //     }
+
+        //     for await (const branch of findRes.branches) {
+        //       await addTableBranch(
+        //         globObjItems.id,
+        //         branch.telephone,
+        //         branch.adres,
+        //         branch.latitud,
+        //         branch.longitud,
+        //         branch.title
+        //       );
+        //     }
+        //   }
+        // }
+
         // DB
       };
 
