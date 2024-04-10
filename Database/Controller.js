@@ -173,12 +173,12 @@ export const useCompanys=async ()=>{
 
 export const tableOrganization=async ()=>{
   try {
-    const results = await pool.query(`CREATE TABLE organization (
+    const results = await pool.query(`CREATE TABLE organizations (
       id INT AUTO_INCREMENT PRIMARY KEY,
       name_am VARCHAR(2000),
       name_en VARCHAR(2000),
       name_ru VARCHAR(2000),
-      categore_id INT
+      subcategory_id INT
   );`);
   } catch (error) {
     console.error(error)
@@ -188,7 +188,7 @@ export const tableOrganization=async ()=>{
 export const addTableOrganization=async (name_am,name_en,name_ru,categore_id)=>{
   try {
     const results = await pool.query(
-      `INSERT INTO organization(name_am,name_en,name_ru,categore_id) VALUES("${name_am}","${name_en}","${name_ru}","${categore_id}");`
+      `INSERT INTO organizations(name_am,name_en,name_ru,subcategory_id) VALUES("${name_am}","${name_en}","${name_ru}","${categore_id}");`
     );
   } catch (error) {
     console.error(error)
@@ -198,7 +198,7 @@ export const addTableOrganization=async (name_am,name_en,name_ru,categore_id)=>{
 export const getOrganizationTable=async()=>{
   try {
    
-    const result=await pool.query(`SELECT * FROM organization;`)
+    const result=await pool.query(`SELECT * FROM organizations;`)
     return result
   } catch (error) {
     console.error(error)
@@ -208,10 +208,10 @@ export const getOrganizationTable=async()=>{
 export const tableWebLink=async()=>{
   try {
     const result = await pool.query(
-      `CREATE TABLE weblink(
+      `CREATE TABLE weblinks(
         id INT AUTO_INCREMENT PRIMARY KEY,
         organization_id INT,
-        weblink_am VARCHAR(1000)
+        weblink VARCHAR(1000)
       );`
     )
   } catch (error) {
@@ -221,7 +221,7 @@ export const tableWebLink=async()=>{
 
 export const addWebLink=async (organization_id,webLink)=>{
   try {
-    const result =await pool.query(`INSERT INTO weblink(organization_id,weblink_am) VALUES('${organization_id}','${webLink}');`)
+    const result =await pool.query(`INSERT INTO weblinks(organization_id,weblink) VALUES('${organization_id}','${webLink}');`)
   } catch (error) {
     console.error(error)
   }
@@ -229,7 +229,7 @@ export const addWebLink=async (organization_id,webLink)=>{
 
 export const getWebLinkTable=async ()=>{
   try {
-    const result =await pool.query(`select * from weblink;`)
+    const result =await pool.query(`select * from weblinks;`)
     return result
   } catch (error) {
     console.error(error)
@@ -239,7 +239,7 @@ export const getWebLinkTable=async ()=>{
 export const tableCompanyActivity=async ()=>{
   try {
     const result=await pool.query(
-      `CREATE TABLE subCategorys (
+      `CREATE TABLE subCategories (
         id INT AUTO_INCREMENT PRIMARY KEY,
         subCategory_am varchar(1000),
         subCategory_en varchar(1000),
@@ -254,7 +254,7 @@ export const tableCompanyActivity=async ()=>{
 export const addTableActivity=async (activity_1_am,activity_1_en,activity_1_ru,activity_2_am,activity_2_en,activity_2_ru)=>{
   try {
     const results = await pool.query(
-      `INSERT INTO subCategorys(subCategory_am,subCategory_en,subCategory_ru) VALUES("${activity_1_am}","${activity_1_en}","${activity_1_ru}")`
+      `INSERT INTO subCategories(subCategory_am,subCategory_en,subCategory_ru) VALUES("${activity_1_am}","${activity_1_en}","${activity_1_ru}")`
     );
   } catch (error) {
     console.error(error)
@@ -264,7 +264,7 @@ export const addTableActivity=async (activity_1_am,activity_1_en,activity_1_ru,a
 
 export const getActivityTable=async()=>{
   try {
-    const result=await pool.query(`SELECT * FROM subCategorys;`)
+    const result=await pool.query(`SELECT * FROM subCategories;`)
     return result
   } catch (error) {
     console.error(error)
@@ -275,7 +275,7 @@ export const getActivityTable=async()=>{
 
 export const tableBranches=async()=>{
   try {
-    const results = await pool.query(`CREATE TABLE branch (
+    const results = await pool.query(`CREATE TABLE branches (
       id INT AUTO_INCREMENT PRIMARY KEY,
       organization_id INT,
       telephone VARCHAR(1000),
@@ -296,7 +296,7 @@ export const tableBranches=async()=>{
 export const addTableBranch=async (organization_id,telephone,address_am,address_en,address_ru,latitude,longitude,title_am,title_en,title_ru)=>{
   try {
     const results = await pool.query(
-      `INSERT INTO branch(organization_id,telephone,address_am,address_en,address_ru,latitude,longitude,title_am,title_en,title_ru) VALUES('${organization_id}','${telephone}','${address_am}','${address_en}','${address_ru}','${latitude}','${longitude}','${title_am}','${title_en}','${title_ru}')`
+      `INSERT INTO branches(organization_id,telephone,address_am,address_en,address_ru,latitude,longitude,title_am,title_en,title_ru) VALUES('${organization_id}','${telephone}','${address_am}','${address_en}','${address_ru}','${latitude}','${longitude}','${title_am}','${title_en}','${title_ru}')`
     );
   } catch (error) {
     console.error(error)
@@ -307,7 +307,7 @@ export const addTableBranch=async (organization_id,telephone,address_am,address_
 
 export const getBranchTable=async()=>{
   try {
-    const results = await pool.query(`SELECT * FROM branch;`);
+    const results = await pool.query(`SELECT * FROM branches;`);
     return results
   } catch (error) {
     console.error(error)
