@@ -1,10 +1,12 @@
 import productService from "../Service/ProductService.js";
+import fetch from "node-fetch";
+import fs from "fs"
 
 const productController = {
   getCompanyName: async (req, res) => {
     try {
       const { lang_am, page, letter_am} = req.query;
-
+       
       const product = await productService.getCompanyNames(lang_am, page, letter_am);
       
   

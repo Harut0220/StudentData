@@ -1,30 +1,25 @@
-import cheerio, { html } from "cheerio";
+import cheerio from "cheerio";
 import fetch from "node-fetch";
 import axios from "axios";
+import fs from "fs";
 import {
-  addLinks,
   addTableActivity,
   addTableBranch,
   addTableOrganization,
   addWebLink,
   getActivityTable,
   getBranchTable,
-  getLinksPagesDb,
   getOrganizationTable,
   getWebLinkTable,
-  storeQrToDB,
-  tableOrganization,
-  useCompanys,
-  useDatabase,
+  useCompanys
+
 } from "../Database/Controller.js";
-// import { each } from "cheerio/lib/api/traversing.js";
-// import { slice } from "cheerio/lib/api/traversing.js";
+
 
 const productService = {
   getCompanyNames: async (lang_am, page, letter_am) => {
     try {
       const fetchDinamice = async (lang_am, page, letter_am) => {
-        // console.log(page);
         const linksArrayAm = [];
 
         const fetchResult = await fetch(
@@ -55,9 +50,6 @@ const productService = {
           const resultEnArray = spliteEn.join("/");
           linkArrEn.push(resultEnArray);
         }
-        // console.log("hayeren",linksArrayAm);
-        // console.log("ruseren",linkArrRu);
-        // console.log("angleren",linkArrEn);
 
         const linksFuncBylangArrays = async (linksArraybyLang) => {
           const resultArray = [];
@@ -70,13 +62,14 @@ const productService = {
               .map((index, element) => $(element).text())
               .get();
             const regexActiv = /'/;
+            if(activity){
             if (activity[activity.length - 1]) {
               activArray.push(
                 activity[activity.length - 1].replace(/["'()]/g, "")
               );
             }
             if (activity[activity.length - 2]) {
-              // const resActivReg=regexActiv.test(activity[activity.length - 2])
+            
               activArray.push(
                 activity[activity.length - 2].replace(/["'()]/g, "")
               );
@@ -92,29 +85,54 @@ const productService = {
               })
               .get();
 
-            const address = $(".address_block")
-              .map((index, element) => $(element).text())
-              .get();
-            const phone = $(".phone_info")
-              .map((index, element) => $(element).text())
-              .get();
-
-            const titleGet = $(".contacts_list>.branch_block>.contact_subtitle")
-              .map((index, element) => {
-                return $(element).text();
-              })
-              .get();
+           
 
             const webLink = $(".web_link").attr("href");
+            const image = $(".slide_block>a").attr("href");
+            //        //nkar
+            // async function downloadImage(url, outputPath) {
+            //   const response = await fetch(url);
+            //   const arrayBuffer = await response.arrayBuffer();
+            //   const buffer = Buffer.from(arrayBuffer);
 
-            const nameByAddressArrayOne = [];
+            //   fs.writeFileSync(outputPath, buffer); // For Node.js, skip this if you're working in the browser
+            // }
+
+            // // Usage
+            // const imageUrl =
+            //   "	https://www.spyur.am/images/additional_info_0/3302/3302_01.jpg?_=1712913949";
+            // const splimg = imageUrl.split("/");
+            // const resimg = splimg[splimg.length - 1].split("?");
+
+            // const outputPath = `../${resimg[0]}`; // Specify the path where you want to save the image
+
+            // downloadImage(imageUrl, outputPath)
+            //   .then(() => console.log("Image downloaded successfully"))
+            //   .catch((err) => console.error("Error downloading image:", err));
+
+            //nkar
+
 
             const branchObjArray = [];
             const resArr = [];
 
             const resObj = {};
             let result = name[0].replace(/["'()]/g, "");
+
             resObj.name = result;
+            //find company name in db
+
+            const forFindOrg = await getOrganizationTable();
+
+            const findDbOrg = await forFindOrg[0].find((el) => {
+              return (
+                el.name_am === resObj.name ||
+                el.name_en === resObj.name ||
+                el.name_ru === resObj.name
+              );
+            });
+
+            //find company name in db
 
             if (webLink) {
               if (webLink.length > 8) {
@@ -130,66 +148,83 @@ const productService = {
               resObj.webLink = null;
             }
 
-            const nameByAddress = $(".map_ico")
-              .each(async (index, element) => {
-                const lat = $(element).attr("lat");
-                const lon = $(element).attr("lon");
-
+            const nameByAddress = $(".branch_block")
+              .map(async (index, element) => {
+                //stexic
+                const workTime = $(element).find(".work_hours").text();
+                const lat = $(element).find(".map_ico").attr("lat");
+                const lon = $(element).find(".map_ico").attr("lon");
                 const branchObj = {};
+                const phone = $(element).find(".phone_info").text();
+                const address = $(element).find(".address_block").text();
+                const titleGet = $(element).find(".contact_subtitle").text();
 
-                if (phone[index]) {
-                  branchObj.telephone = phone[index];
+                if (phone[index] && lon && lat) {
+                  branchObj.telephone = phone;
                 } else {
                   branchObj.telephone = null;
                 }
-                if (address[index]) {
-                  branchObj.adres = address[index].replace(/["'()]/g, "");
+                if (address[index] && lon && lat) {
+                  branchObj.adres = address.replace(/["'()]/g, "");
                 } else {
                   branchObj.adres = null;
                 }
-                if (lat) {
+                if (lon && lat) {
                   branchObj.latitud = lat;
                 } else {
                   branchObj.latitud = null;
                 }
-                if (lon) {
+                if (lon && lat) {
                   branchObj.longitud = lon;
                 } else {
                   branchObj.longitud = null;
                 }
-                if (titleGet[index]) {
-                  branchObj.title = titleGet[index].replace(/["'()]/g, "");
+                if (workTime[index] && lon && lat) {
+                  branchObj.workTime = workTime;
+                } else {
+                  branchObj.workTime = null;
+                }
+                if (titleGet[index] && lon && lat) {
+                  branchObj.title = titleGet.replace(/["'()]/g, "");
                 } else {
                   branchObj.title = null;
                 }
+                if (lon && lat) {
+                  branchObjArray.push(branchObj);
+                }
 
-                branchObjArray.push(branchObj);
-                if (activArray[0]) {
+                if (activArray[0] && lon && lat) {
                   resObj.activity = activArray[0];
                 } else {
                   resObj.activity = null;
                 }
+                if (lon && lat) {
+                  resObj.branches = branchObjArray;
+                }
 
-                resObj.branches = branchObjArray;
-                resArr.push(resObj);
+                if (lon && lat) {
+                  resArr.push(resObj);
+                }
               })
-              .get();
-
-            if (
-              resObj.branches &&
-              status !== "ՉԻ ԳՈՐԾՈՒՄ" &&
-              status !== "DOESN'T OPERATE" &&
-              status !== "НЕ ДЕЙСТВУЕТ" &&
-              activArray[0]
-            ) {
-              resultArray.push(resObj);
+              .get(); //stex
+            if (!findDbOrg) {
+              if (
+                resObj.branches &&
+                status !== "ՉԻ ԳՈՐԾՈՒՄ" &&
+                status !== "DOESN'T OPERATE" &&
+                status !== "НЕ ДЕЙСТВУЕТ" &&
+                activArray[0]
+              ) {
+                resultArray.push(resObj);
+              }
             }
+           }
           }
 
           return resultArray;
         };
 
-        // arrayneri funkcianer@ kanchum enq stex
+        // lang array function
         const armenian = await linksFuncBylangArrays(linksArrayAm).then(
           (res) => {
             return res;
@@ -203,6 +238,7 @@ const productService = {
         });
         return [armenian, english, russian];
       };
+      // lang array function
 
       const resultArrayByOneAm = await fetchDinamice(
         lang_am,
@@ -219,7 +255,7 @@ const productService = {
           i_organ++
         ) {
           await useCompanys();
-          // await tableOrganization()
+  
           const dbByActivFilter = await getActivityTable();
           const filterActiv = await dbByActivFilter[0].find((el) => {
             return (
@@ -247,10 +283,9 @@ const productService = {
 
         const dbActivResult = await getActivityTable();
         for (let indorg = 0; indorg < resultArrayByOneAm[0].length; indorg++) {
-          // for await(const funcArg of resultArrayByOneAm[0]){
+          
 
           const findActivbyOrgActivity = await dbActivResult[0].find((el) => {
-            
             return el.subCategory_am === resultArrayByOneAm[0][indorg].activity;
           });
 
@@ -285,7 +320,6 @@ const productService = {
             indexbranch < resultArrayByOneAm[0][iByLang].branches.length;
             indexbranch++
           ) {
-            // console.log(resultArrayByOneAm[1][iByLang]);
             // const resultStreet_am = resultArrayByOneAm[0][iByLang].branches[
             //   indexbranch
             // ].adres
@@ -308,7 +342,10 @@ const productService = {
               resultArrayByOneAm[2][iByLang].branches[indexbranch].longitud,
               resultArrayByOneAm[0][iByLang].branches[indexbranch].title,
               resultArrayByOneAm[1][iByLang].branches[indexbranch].title,
-              resultArrayByOneAm[2][iByLang].branches[indexbranch].title
+              resultArrayByOneAm[2][iByLang].branches[indexbranch].title,
+              resultArrayByOneAm[0][iByLang].branches[indexbranch].workTime,
+              resultArrayByOneAm[1][iByLang].branches[indexbranch].workTime,
+              resultArrayByOneAm[2][iByLang].branches[indexbranch].workTime
             );
           }
 
@@ -423,7 +460,7 @@ const productService = {
       const webLink = await getWebLinkTable();
       const activity = await getActivityTable();
       const branchs = await getBranchTable();
-      console.log(branchs[0]);
+      // console.log(branchs[0]);
       const resultArray = [];
       for await (const organiz of organization[0]) {
         const resultWebLink = await webLink[0].filter((el) => {
