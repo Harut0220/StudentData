@@ -1,20 +1,18 @@
 import cheerio from "cheerio";
 import fetch from "node-fetch";
-import axios from "axios";
 import fs from "fs";
 import {
   addTableActivity,
   addTableBranch,
+  addTableImages,
   addTableOrganization,
   addWebLink,
   getActivityTable,
   getBranchTable,
   getOrganizationTable,
   getWebLinkTable,
-  useCompanys
-
+  useCompanys,
 } from "../Database/Controller.js";
-
 
 const productService = {
   getCompanyNames: async (lang_am, page, letter_am) => {
@@ -62,163 +60,152 @@ const productService = {
               .map((index, element) => $(element).text())
               .get();
             const regexActiv = /'/;
-            if(activity){
-            if (activity[activity.length - 1]) {
-              activArray.push(
-                activity[activity.length - 1].replace(/["'()]/g, "")
-              );
-            }
-            if (activity[activity.length - 2]) {
+            if (activity) {
+              if (activity[activity.length - 1]) {
+                activArray.push(
+                  activity[activity.length - 1].replace(/["'()]/g, "")
+                );
+              }
+              if (activity[activity.length - 2]) {
+                activArray.push(
+                  activity[activity.length - 2].replace(/["'()]/g, "")
+                );
+              }
+
+              const status = $("#buffer50comment>span").text();
+
+              const name = $("h1")
+                .map((index, element) => {
+                  const res = $(element).text();
+
+                  return res;
+                })
+                .get();
+
+              const webLink = $(".web_link").attr("href");
+              let imgArray = [];
+              const image = $(".slide_block>a")
+                .each((index, element) => {
+                  const resultImg = $(element).attr("href");
+                  if (resultImg[0] !== "h") {
+                    imgArray.push(resultImg);
+                  }
+                })
+                .get();
+              console.log(imgArray);
             
-              activArray.push(
-                activity[activity.length - 2].replace(/["'()]/g, "")
-              );
-            }
 
-            const status = $("#buffer50comment>span").text();
+              const branchObjArray = [];
+              const resArr = [];
 
-            const name = $("h1")
-              .map((index, element) => {
-                const res = $(element).text();
+              const resObj = {};
+              let result = name[0].replace(/["'()]/g, "");
 
-                return res;
-              })
-              .get();
+              resObj.name = result;
+              //find company name in db
 
-           
+              const forFindOrg = await getOrganizationTable();
 
-            const webLink = $(".web_link").attr("href");
-            const image = $(".slide_block>a").attr("href");
-            //        //nkar
-            // async function downloadImage(url, outputPath) {
-            //   const response = await fetch(url);
-            //   const arrayBuffer = await response.arrayBuffer();
-            //   const buffer = Buffer.from(arrayBuffer);
+              const findDbOrg = await forFindOrg[0].find((el) => {
+                return (
+                  el.name_am === resObj.name ||
+                  el.name_en === resObj.name ||
+                  el.name_ru === resObj.name
+                );
+              });
 
-            //   fs.writeFileSync(outputPath, buffer); // For Node.js, skip this if you're working in the browser
-            // }
+              //find company name in db
+              if (imgArray[0]) {
+                resObj.image = imgArray;
+              } else {
+                resObj.image = null;
+              }
 
-            // // Usage
-            // const imageUrl =
-            //   "	https://www.spyur.am/images/additional_info_0/3302/3302_01.jpg?_=1712913949";
-            // const splimg = imageUrl.split("/");
-            // const resimg = splimg[splimg.length - 1].split("?");
-
-            // const outputPath = `../${resimg[0]}`; // Specify the path where you want to save the image
-
-            // downloadImage(imageUrl, outputPath)
-            //   .then(() => console.log("Image downloaded successfully"))
-            //   .catch((err) => console.error("Error downloading image:", err));
-
-            //nkar
-
-
-            const branchObjArray = [];
-            const resArr = [];
-
-            const resObj = {};
-            let result = name[0].replace(/["'()]/g, "");
-
-            resObj.name = result;
-            //find company name in db
-
-            const forFindOrg = await getOrganizationTable();
-
-            const findDbOrg = await forFindOrg[0].find((el) => {
-              return (
-                el.name_am === resObj.name ||
-                el.name_en === resObj.name ||
-                el.name_ru === resObj.name
-              );
-            });
-
-            //find company name in db
-
-            if (webLink) {
-              if (webLink.length > 8) {
-                if (webLink[8] !== "s" && webLink[12] !== "s") {
-                  resObj.webLink = webLink;
+              if (webLink) {
+                if (webLink.length > 8) {
+                  if (webLink[8] !== "s" && webLink[12] !== "s") {
+                    resObj.webLink = webLink;
+                  } else {
+                    resObj.webLink = null;
+                  }
                 } else {
                   resObj.webLink = null;
                 }
               } else {
                 resObj.webLink = null;
               }
-            } else {
-              resObj.webLink = null;
-            }
 
-            const nameByAddress = $(".branch_block")
-              .map(async (index, element) => {
-                //stexic
-                const workTime = $(element).find(".work_hours").text();
-                const lat = $(element).find(".map_ico").attr("lat");
-                const lon = $(element).find(".map_ico").attr("lon");
-                const branchObj = {};
-                const phone = $(element).find(".phone_info").text();
-                const address = $(element).find(".address_block").text();
-                const titleGet = $(element).find(".contact_subtitle").text();
+              const nameByAddress = $(".branch_block")
+                .map(async (index, element) => {
+                  //stexic
+                  const workTime = $(element).find(".work_hours").text();
+                  const lat = $(element).find(".map_ico").attr("lat");
+                  const lon = $(element).find(".map_ico").attr("lon");
+                  const branchObj = {};
+                  const phone = $(element).find(".phone_info").text();
+                  const address = $(element).find(".address_block").text();
+                  const titleGet = $(element).find(".contact_subtitle").text();
 
-                if (phone[index] && lon && lat) {
-                  branchObj.telephone = phone;
-                } else {
-                  branchObj.telephone = null;
-                }
-                if (address[index] && lon && lat) {
-                  branchObj.adres = address.replace(/["'()]/g, "");
-                } else {
-                  branchObj.adres = null;
-                }
-                if (lon && lat) {
-                  branchObj.latitud = lat;
-                } else {
-                  branchObj.latitud = null;
-                }
-                if (lon && lat) {
-                  branchObj.longitud = lon;
-                } else {
-                  branchObj.longitud = null;
-                }
-                if (workTime[index] && lon && lat) {
-                  branchObj.workTime = workTime;
-                } else {
-                  branchObj.workTime = null;
-                }
-                if (titleGet[index] && lon && lat) {
-                  branchObj.title = titleGet.replace(/["'()]/g, "");
-                } else {
-                  branchObj.title = null;
-                }
-                if (lon && lat) {
-                  branchObjArray.push(branchObj);
-                }
+                  if (phone[index] && lon && lat) {
+                    branchObj.telephone = phone;
+                  } else {
+                    branchObj.telephone = null;
+                  }
+                  if (address[index] && lon && lat) {
+                    branchObj.adres = address.replace(/["'()]/g, "");
+                  } else {
+                    branchObj.adres = null;
+                  }
+                  if (lon && lat) {
+                    branchObj.latitud = lat;
+                  } else {
+                    branchObj.latitud = null;
+                  }
+                  if (lon && lat) {
+                    branchObj.longitud = lon;
+                  } else {
+                    branchObj.longitud = null;
+                  }
+                  if (workTime[index] && lon && lat) {
+                    branchObj.workTime = workTime;
+                  } else {
+                    branchObj.workTime = null;
+                  }
+                  if (titleGet[index] && lon && lat) {
+                    branchObj.title = titleGet.replace(/["'()]/g, "");
+                  } else {
+                    branchObj.title = null;
+                  }
+                  if (lon && lat) {
+                    branchObjArray.push(branchObj);
+                  }
 
-                if (activArray[0] && lon && lat) {
-                  resObj.activity = activArray[0];
-                } else {
-                  resObj.activity = null;
-                }
-                if (lon && lat) {
-                  resObj.branches = branchObjArray;
-                }
+                  if (activArray[0] && lon && lat) {
+                    resObj.activity = activArray[0];
+                  } else {
+                    resObj.activity = null;
+                  }
+                  if (lon && lat&&activArray[0]) {
+                    resObj.branches = branchObjArray;
+                  }
 
-                if (lon && lat) {
-                  resArr.push(resObj);
+                  if (lon && lat) {
+                    resArr.push(resObj);
+                  }
+                })
+                .get(); //stex
+              if (!findDbOrg) {
+                if (
+                  resObj.branches &&
+                  status !== "ՉԻ ԳՈՐԾՈՒՄ" &&
+                  status !== "DOESN'T OPERATE" &&
+                  status !== "НЕ ДЕЙСТВУЕТ" &&
+                  resObj.activity
+                ) {
+                  resultArray.push(resObj);
                 }
-              })
-              .get(); //stex
-            if (!findDbOrg) {
-              if (
-                resObj.branches &&
-                status !== "ՉԻ ԳՈՐԾՈՒՄ" &&
-                status !== "DOESN'T OPERATE" &&
-                status !== "НЕ ДЕЙСТВУЕТ" &&
-                activArray[0]
-              ) {
-                resultArray.push(resObj);
               }
             }
-           }
           }
 
           return resultArray;
@@ -255,7 +242,7 @@ const productService = {
           i_organ++
         ) {
           await useCompanys();
-  
+
           const dbByActivFilter = await getActivityTable();
           const filterActiv = await dbByActivFilter[0].find((el) => {
             return (
@@ -263,15 +250,6 @@ const productService = {
             );
           });
 
-          // const resCategory_am = resultArrayByOneAm[0][
-          //   i_organ
-          // ].activity
-          // const resCategory_en = resultArrayByOneAm[1][
-          //   i_organ
-          // ].activity
-          // const resCategory_ru = resultArrayByOneAm[2][
-          //   i_organ
-          // ].activity
           if (!filterActiv) {
             await addTableActivity(
               resultArrayByOneAm[0][i_organ].activity,
@@ -283,19 +261,11 @@ const productService = {
 
         const dbActivResult = await getActivityTable();
         for (let indorg = 0; indorg < resultArrayByOneAm[0].length; indorg++) {
-          
-
           const findActivbyOrgActivity = await dbActivResult[0].find((el) => {
             return el.subCategory_am === resultArrayByOneAm[0][indorg].activity;
           });
 
           if (findActivbyOrgActivity) {
-            // const str = resultArrayByOneAm[1][indorg].name;
-            // const result = str.replace(/'/g, "");
-
-            // const resOrgan_am = resultArrayByOneAm[0][indorg].name
-            // const resOrgan_en = resultArrayByOneAm[1][indorg].name
-            // const resOrgan_ru = resultArrayByOneAm[2][indorg].name
             await addTableOrganization(
               resultArrayByOneAm[0][indorg].name,
               resultArrayByOneAm[1][indorg].name,
@@ -315,23 +285,54 @@ const productService = {
           const findRes = resGlobObj[0].find((el) => {
             return el.name_am === resultArrayByOneAm[0][iByLang].name;
           });
+
+          if (resultArrayByOneAm[0][iByLang].image !== null) {
+            for (
+              let imgIndex = 0;
+              imgIndex < resultArrayByOneAm[0][iByLang].image.length;
+              imgIndex++
+            ) {
+              async function downloadImage(url, outputPath) {
+                const response = await fetch(url);
+                const arrayBuffer = await response.arrayBuffer();
+                const buffer = Buffer.from(arrayBuffer);
+
+                fs.writeFileSync(outputPath, buffer); // For Node.js, skip this if you're working in the browser
+              }
+
+              // Usage
+
+              
+              const imageUrl = `https://www.spyur.am/${resultArrayByOneAm[0][iByLang].image[imgIndex]}`;
+              const splimg = imageUrl.split("/");
+              const resimg = splimg[splimg.length - 1].split("?");
+              const dirPath = `./public/images/${findRes.id}`;
+
+              fs.mkdir(dirPath, { recursive: true }, (err) => {
+                if (err) {
+                  console.error(err);
+                  return;
+                }
+                console.log("Directory created successfully");
+              });
+              const outputPath = `./public/images/${findRes.id}/${resimg[0]}`; // Specify the path where you want to save the image
+              const pathBd=outputPath.split("/")
+              pathBd.shift()
+              const resPathDb=pathBd.join("/")
+              downloadImage(imageUrl, outputPath)
+                .then(() => console.log("Image downloaded successfully"))
+                .catch((err) => console.error("Error downloading image:", err));
+              await addTableImages(
+                findRes.id,
+                resPathDb
+              );
+            }
+          }
           for (
             let indexbranch = 0;
             indexbranch < resultArrayByOneAm[0][iByLang].branches.length;
             indexbranch++
           ) {
-            // const resultStreet_am = resultArrayByOneAm[0][iByLang].branches[
-            //   indexbranch
-            // ].adres
-            // const resultStreet_en = resultArrayByOneAm[1][iByLang].branches[
-            //   indexbranch
-            // ].adres
-            // const resultStreet_ru = resultArrayByOneAm[2][iByLang].branches[
-            //   indexbranch
-            // ].adres
-            // const title_am=resultArrayByOneAm[0][iByLang].branches[indexbranch].title
-            // const title_en=resultArrayByOneAm[1][iByLang].branches[indexbranch].title
-            // const title_ru=resultArrayByOneAm[2][iByLang].branches[indexbranch].title
             await addTableBranch(
               findRes.id,
               resultArrayByOneAm[0][iByLang].branches[indexbranch].telephone,
@@ -359,93 +360,9 @@ const productService = {
           }
         }
 
-        // const resultOrganizationIf = await getOrganizationTable();
-
-        // if (resultOrganizationIf) {
-        //   for (let i = 0; i < resultArrayByOneAm[0].length; i++) {
-        //     await addTableOrganization(
-        //       resultArrayByOneAm[0][i].name,
-        //       resultArrayByOneAm[0][i].letter
-        //     );
-        //   }
-
-        //   const resGlobObj = await getOrganizationTable();
-
-        //   for await (const globObjItems of resultArrayByOneAm[0]) {
-        //     const findRes = resGlobObj[0].find(
-        //       (el) => el.name === globObjItems.name
-        //     );
-
-        //     if (globObjItems.webLink) {
-        //       await addWebLink(findRes.id, globObjItems.webLink);
-        //     }
-
-        //     if (globObjItems.activity) {
-        //       for await (const activ of globObjItems.activity) {
-        //         await addTableActivity(findRes.id, activ);
-        //       }
-        //     }
-
-        //     for await (const branch of globObjItems.branches) {
-        //       if (branch.title) {
-        //         await addTableBranch(
-        //           findRes.id,
-        //           branch.telephone,
-        //           branch.adres,
-        //           branch.latitud,
-        //           branch.longitud,
-        //           branch.title
-        //         );
-        //       } else {
-        //         await addTableBranch(
-        //           findRes.id,
-        //           branch.telephone,
-        //           branch.adres,
-        //           branch.latitud,
-        //           branch.longitud,
-        //           null
-        //         );
-        //       }
-        //     }
-        //   }
-        // } else {
-        //   for (let ind = 0; ind < resultArrayByOneAm[0].length; ind++) {
-        //     await addTableOrganization(
-        //       resultArrayByOneAm[0][ind].name,
-        //       resultArrayByOneAm[0][ind].letter
-        //     );
-        //   }
-
-        //   const resGlobObj = await getOrganizationTable();
-
-        //   for await (const globObjItems of resGlobObj[0]) {
-        //     const findRes = resultArrayByOneAm[0].find(
-        //       (el) => el.name === globObjItems.name
-        //     );
-
-        //     await addWebLink(globObjItems.id, findRes.webLink);
-
-        //     for await (const activ of findRes.activity) {
-        //       await addTableActivity(globObjItems.id, activ);
-        //     }
-
-        //     for await (const branch of findRes.branches) {
-        //       await addTableBranch(
-        //         globObjItems.id,
-        //         branch.telephone,
-        //         branch.adres,
-        //         branch.latitud,
-        //         branch.longitud,
-        //         branch.title
-        //       );
-        //     }
-        //   }
-        // }
-
-        // DB
       };
 
-      //DB
+     //DB
       dbGlobalFunc(resultArrayByOneAm);
 
       return resultArrayByOneAm;
