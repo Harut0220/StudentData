@@ -9,6 +9,7 @@ import {
   addWebLink,
   getActivityTable,
   getBranchTable,
+  getImagesTable,
   getOrganizationTable,
   getWebLinkTable,
   useCompanys,
@@ -377,7 +378,13 @@ const productService = {
       const webLink = await getWebLinkTable();
       const activity = await getActivityTable();
       const branchs = await getBranchTable();
-      // console.log(branchs[0]);
+      const images=await getImagesTable()
+      console.log("organization",organization[0]);
+      console.log("webLink",webLink[0]);
+      console.log("subcategories",activity[0]);
+      console.log("branchs",branchs[0]);
+      console.log("images",images[0]);
+      // // console.log(branchs[0]);
       const resultArray = [];
       for await (const organiz of organization[0]) {
         const resultWebLink = await webLink[0].filter((el) => {
@@ -396,6 +403,10 @@ const productService = {
         const resultActivity = await activity[0].filter((el) => {
           return el.organization_id === organiz.id;
         });
+        const resultImages=await images[0].filter((el)=>{
+          return el.organization_id===organiz.id
+        })
+        organiz.images=resultImages
         if (resultActivity) {
           resultActivity.map((el) => {
             delete el.id;
@@ -422,8 +433,10 @@ const productService = {
         }
         resultArray.push(organiz);
       }
-
-      return resultArray;
+      // console.log("organ length",organization[0].length);
+      // console.log("weblinks length",webLink[0].length);
+      // console.log(webLink[0][webLink[0].length-10]);
+      return organization[0];
     } catch (error) {
       console.error(error);
     }
