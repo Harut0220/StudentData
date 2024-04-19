@@ -379,11 +379,12 @@ const productService = {
       const activity = await getActivityTable();
       const branchs = await getBranchTable();
       const images=await getImagesTable()
-      console.log("organization",organization[0]);
-      console.log("webLink",webLink[0]);
-      console.log("subcategories",activity[0]);
-      console.log("branchs",branchs[0]);
-      console.log("images",images[0]);
+     
+      // console.log("organization",organization[0]);
+      // console.log("webLink",filterNull);
+      // console.log("subcategories",activity[0]);
+      // console.log("branchs",branchs[0]);
+      // console.log("images",images[0]);
       // // console.log(branchs[0]);
       const resultArray = [];
       for await (const organiz of organization[0]) {

@@ -278,7 +278,7 @@ export const tableBranches=async()=>{
     const results = await pool.query(`CREATE TABLE branches (
       id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
       organization_id BIGINT UNSIGNED,
-      telephone VARCHAR(1000) NULL,
+      telephone VARCHAR(2000) NULL,
       address_am VARCHAR(1000) NULL,
       address_en VARCHAR(1000) NULL,
       address_ru VARCHAR(1000) NULL,
