@@ -15,6 +15,17 @@ const productController = {
       console.error(error)
     }
   },
+  createTrademarks:async(req,res)=>{
+    try {
+      const {lang, page, letter}=req.query
+      
+      const result = await productService.createTrademarks(lang, page, letter)
+      res.status(200).send(result)
+    } catch (error) {
+      console.error(error)
+    }
+    
+  },
   getData:async (req,res)=>{
     try {
       const data=await productService.getData()

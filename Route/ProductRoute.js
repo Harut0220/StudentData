@@ -7,6 +7,7 @@ const productRouter = Router();
 
 // productRouter.get("/", productController.get);
 productRouter.get("/create/companys",productController.getCompanyName)
+productRouter.get("/create/trademarks",productController.createTrademarks)
 productRouter.get("/get/companys",productController.getData)
 // productRouter.get("/result",productController.getByName)
 // productRouter.get("/linkbypage",productController.getBank)

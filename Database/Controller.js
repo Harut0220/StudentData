@@ -170,6 +170,14 @@ export const useCompanys=async ()=>{
   }
 } 
 
+export const useBrand=async ()=>{
+  try {
+    const results = await pool.query(`USE brands;`);
+  } catch (error) {
+    console.error(error)
+  }
+} 
+
 
 export const tableOrganization=async ()=>{
   try {
