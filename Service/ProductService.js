@@ -4,11 +4,13 @@ import fs from "fs";
 import {
   addTableActivity,
   addTableBranch,
+  addTableBrand,
   addTableImages,
   addTableOrganization,
   addWebLink,
   getActivityTable,
   getBranchTable,
+  getBrandsTable,
   getImagesTable,
   getOrganizationTable,
   getWebLinkTable,
@@ -19,10 +21,9 @@ import {
 const productService = {
   createTrademarks: async (lang, page, letter) => {
     try {
+      //one level
       const fetchDinamice = async (lang, page, letter) => {
         const linksBrandArrayAm = [];
-        const linksBrandArrayEn = [];
-        const linksBrandArrayRu = [];
         const fetchResult = await fetch(
           `https://www.spyur.am/${lang}/trademarks-${page}/${letter}/?from=home&from=home&tab=trademarks_am`
         );
@@ -33,67 +34,19 @@ const productService = {
           .each((index, element) => {
             const resObj = {};
             const link = $(element).attr("href");
-            const brand = $(element).attr("title");
-            resObj.link = link;
-            resObj.brand = brand;
-            linksBrandArrayAm.push(resObj);
+            
+            linksBrandArrayAm.push(link);
           })
           .get();
-
-        const fetchResult1 = await fetch(
-          `https://www.spyur.am/en/trademarks-${page}/${letter}/?from=home&from=home&tab=trademarks_en`
-        );
-
-        const html1 = await fetchResult1.text();
-        const $1 = cheerio.load(html1);
-        const brandLink1 = $1(".company_num>a")
-          .each((index, element) => {
-            const resObj = {};
-            const link = $(element).attr("href");
-            const brand = $(element).attr("title");
-            resObj.link = link;
-            resObj.brand = brand;
-            linksBrandArrayEn.push(resObj);
-          })
-          .get();
-
-        const fetchResult2 = await fetch(
-          `https://www.spyur.am/ru/trademarks-${page}/${letter}/?from=home&from=home&tab=trademarks_ru`
-        );
-
-        const html2 = await fetchResult2.text();
-        const $2 = cheerio.load(html2);
-        const brandLink2 = $2(".company_num>a")
-          .each((index, element) => {
-            const resObj = {};
-            const link = $(element).attr("href");
-            const brand = $(element).attr("title");
-            resObj.link = link;
-            resObj.brand = brand;
-            linksBrandArrayRu.push(resObj);
-          })
-          .get();
-
-        return [linksBrandArrayAm, linksBrandArrayEn, linksBrandArrayRu];
+          console.log("brand link 20",linksBrandArrayAm.length);
+        return linksBrandArrayAm;
       };
 
       const arrayByAm = await fetchDinamice(lang, page, letter);
-
-      // const linkArrRu = [];
-      // const linkArrEn = [];
-      // for (let indexLink = 0; indexLink < arrayByAm.length; indexLink++) {
-      //   const spliteRu = arrayByAm[indexLink].split("/");
-      //   spliteRu[1] = "ru";
-      //   const resultRuArray = spliteRu.join("/");
-      //   linkArrRu.push(resultRuArray);
-      // }
-      // for (let indEn = 0; indEn < arrayByAm.length; indEn++) {
-      //   const spliteEn = arrayByAm[indEn].split("/");
-      //   spliteEn[1] = "en";
-      //   const resultEnArray = spliteEn.join("/");
-      //   linkArrEn.push(resultEnArray);
-      // }
-
+  
+      //one level
+      
+      //two level
       await useBrand();
       const linksByBrandArrayAm = [];
       const linksByBrandArrayEn = [];
@@ -103,227 +56,253 @@ const productService = {
       const brandNameRuArr = [];
       const byLangFun = async (resFunc) => {
         for await (const linksbylangAm of resFunc[0]) {
-          const fetchBrandAm = await fetch(
-            `https://www.spyur.am${linksbylangAm.link}`
+          const fetchBrandAm1 = await fetch(
+            `https://www.spyur.am${linksbylangAm}`
           );
 
-          const html1 = await fetchBrandAm.text();
+          const html1 = await fetchBrandAm1.text();
 
           const $1 = cheerio.load(html1);
+          const brand_am=$1(".found").text()
           const linksCompanysAm = $1(".results_list>a").each(
             (index, element) => {
               const linkByBrands = $1(element).attr("href");
               const resObjAm = {};
 
               resObjAm.link = linkByBrands;
-              resObjAm.brand = linksbylangAm.brand;
+              resObjAm.brand=brand_am.replace(/["'()]/g, "")
               linksByBrandArrayAm.push(resObjAm);
             }
           );
         }
         for await (const linksbylangEn of resFunc[1]) {
-          const fetchBrandAm = await fetch(
-            `https://www.spyur.am${linksbylangEn.link}`
+          const fetchBrandAm2 = await fetch(
+            `https://www.spyur.am${linksbylangEn}`
           );
 
-          const html1 = await fetchBrandAm.text();
+          const html2 = await fetchBrandAm2.text();
 
-          const $1 = cheerio.load(html1);
-          const linksCompanysAm = $1(".results_list>a").each(
+          const $2 = cheerio.load(html2);
+          const brand_en=$2(".found").text()
+          const linksCompanysAm = $2(".results_list>a").each(
             (index, element) => {
-              const linkByBrands = $1(element).attr("href");
+              const linkByBrands = $2(element).attr("href");
               const resObjEn = {};
-
-              resObjEn.link = linkByBrands;
-              resObjEn.brand = linksbylangEn.brand;
+              resObjEn.brand=brand_en.replace(/["'()]/g, "")
               linksByBrandArrayEn.push(resObjEn);
             }
           );
         }
         for await (const linksbylangRu of resFunc[2]) {
-          const fetchBrandAm = await fetch(
-            `https://www.spyur.am${linksbylangRu.link}`
+          const fetchBrandAm3 = await fetch(
+            `https://www.spyur.am${linksbylangRu}`
           );
 
-          const html1 = await fetchBrandAm.text();
+          const html3 = await fetchBrandAm3.text();
 
-          const $1 = cheerio.load(html1);
-          const linksCompanysAm = $1(".results_list>a").each(
+          const $3 = cheerio.load(html3);
+          const brand_ru=$3(".found").text()
+          const linksCompanysAm = $3(".results_list>a").each(
             (index, element) => {
-              const linkByBrands = $1(element).attr("href");
+              const linkByBrands = $3(element).attr("href");
               const resObjRu = {};
-
-              resObjRu.link = linkByBrands;
-              resObjRu.brand = linksbylangRu.brand;
+             resObjRu.brand=brand_ru.replace(/["'()]/g, "")
               linksByBrandArrayRu.push(resObjRu);
             }
           );
         }
-
+        console.log("companyByBrand",[linksByBrandArrayAm.length, linksByBrandArrayEn.length, linksByBrandArrayRu.length]);
         return [linksByBrandArrayAm, linksByBrandArrayEn, linksByBrandArrayRu];
       };
+      const brandLinkArrayEn=[]
+      const brandLinkArrayRu=[]
+      for await (const link of arrayByAm){
+        const splitArrEn=link.split("/")
+        splitArrEn[1]="en"
+        const joinEn=splitArrEn.join("/")
+        brandLinkArrayEn.push(joinEn)
 
-      const brandFuncAm = await byLangFun(arrayByAm);
+        const splitArrRu=link.split("/")
+        splitArrRu[1]="ru"
+        const joinRu=splitArrRu.join("/")
+        brandLinkArrayRu.push(joinRu)
+      }
+      const forByLangFunc=[arrayByAm,brandLinkArrayEn,brandLinkArrayRu]
+      
+      const brandFuncAm = await byLangFun(forByLangFunc);
+     
+      // //two level
 
+
+      //three level
       const linksFuncBylangArrays = async (linksArraybyLang) => {
+      
         const resultArray = [];
         for await (const link of linksArraybyLang) {
-         
-
-          const fetchCompany = await fetch(`https://www.spyur.am${link.link}`);
-          const html = await fetchCompany.text();
-          const $ = cheerio.load(html);
-          const activArray = [];
-          const activity = $(".multilevel_list>li>ul>li>ul>li>a")
-            .map((index, element) => $(element).text())
-            .get();
-          const regexActiv = /'/;
-          if (activity) {
-            if (activity[activity.length - 1]) {
-              activArray.push(
-                activity[activity.length - 1].replace(/["'()]/g, "")
-              );
-            }
-            if (activity[activity.length - 2]) {
-              activArray.push(
-                activity[activity.length - 2].replace(/["'()]/g, "")
-              );
-            }
-
-            const status = $("#buffer50comment>span").text();
-
-            const name = $("h1")
-              .map((index, element) => {
-                const res = $(element).text();
-
-                return res;
-              })
+          if (
+            link.link !==
+              "/am/companies/autosan-automotive-parts-store-and-car-service-center/26246/" &&
+            link.link !==
+              "/en/companies/autosan-automotive-parts-store-and-car-service-center/26246/" &&
+            link.link !==
+              "/ru/companies/autosan-automotive-parts-store-and-car-service-center/26246/"
+          ) {
+            const fetchCompany = await fetch(
+              `https://www.spyur.am${link.link}`
+            );
+            const html = await fetchCompany.text();
+            const $ = cheerio.load(html);
+            const activArray = [];
+            const activity = $(".multilevel_list>li>ul>li>ul>li>a")
+              .map((index, element) => $(element).text())
               .get();
+            const regexActiv = /'/;
+            if (activity) {
+              if (activity[activity.length - 1]) {
+                activArray.push(
+                  activity[activity.length - 1].replace(/["'()]/g, "")
+                );
+              }
+              if (activity[activity.length - 2]) {
+                activArray.push(
+                  activity[activity.length - 2].replace(/["'()]/g, "")
+                );
+              }
 
-            const webLink = $(".web_link").attr("href");
-            let imgArray = [];
-            const image = $(".slide_block>a")
-              .each((index, element) => {
-                const resultImg = $(element).attr("href");
-                if (resultImg[0] !== "h") {
-                  imgArray.push(resultImg);
-                }
-              })
-              .get();
+              const status = $("#buffer50comment>span").text();
 
-            const branchObjArray = [];
-            const resArr = [];
+              const name = $("h1")
+                .map((index, element) => {
+                  const res = $(element).text();
 
-            const resObj = {};
-            let result = name[0].replace(/["'()]/g, "");
+                  return res;
+                })
+                .get();
 
-            resObj.name = result;
-            //find company name in db
+              const webLink = $(".web_link").attr("href");
+              let imgArray = [];
+              const image = $(".slide_block>a")
+                .each((index, element) => {
+                  const resultImg = $(element).attr("href");
+                  if (resultImg[0] !== "h") {
+                    imgArray.push(resultImg);
+                  }
+                })
+                .get();
 
-            const forFindOrg = await getOrganizationTable();
+              const branchObjArray = [];
+              const resArr = [];
 
-            const findDbOrg = await forFindOrg[0].find((el) => {
-              return (
-                el.name_am === resObj.name ||
-                el.name_en === resObj.name ||
-                el.name_ru === resObj.name
-              );
-            });
+              const resObj = {};
+              let result = name[0].replace(/["'()]/g, "");
 
-            //find company name in db
-            if (imgArray[0]) {
-              resObj.image = imgArray;
-            } else {
-              resObj.image = null;
-            }
-            if (link.brand) {
-              resObj.brand = link.brand;
-            }
-            if (webLink) {
-              if (webLink.length > 8) {
-                if (webLink[8] !== "s" && webLink[12] !== "s") {
-                  resObj.webLink = webLink;
+              resObj.name = result;
+              //find company name in db
+
+              const forFindOrg = await getOrganizationTable();
+
+              const findDbOrg = await forFindOrg[0].find((el) => {
+                return (
+                  el.name_am === resObj.name ||
+                  el.name_en === resObj.name ||
+                  el.name_ru === resObj.name
+                );
+              });
+
+              //find company name in db
+              if (imgArray[0]) {
+                resObj.image = imgArray;
+              } else {
+                resObj.image = null;
+              }
+              if (link.brand) {
+                resObj.brand = link.brand;
+              }
+              if (webLink) {
+                if (webLink.length > 8) {
+                  if (webLink[8] !== "s" && webLink[12] !== "s") {
+                    resObj.webLink = webLink;
+                  } else {
+                    resObj.webLink = null;
+                  }
                 } else {
                   resObj.webLink = null;
                 }
               } else {
                 resObj.webLink = null;
               }
-            } else {
-              resObj.webLink = null;
-            }
 
-            const nameByAddress = $(".branch_block")
-              .map(async (index, element) => {
-                //stexic
-                const workTime = $(element).find(".work_hours").text();
-                const lat = $(element).find(".map_ico").attr("lat");
-                const lon = $(element).find(".map_ico").attr("lon");
-                const branchObj = {};
-                const phone = $(element).find(".phone_info").text();
-                const address = $(element).find(".address_block").text();
-                const titleGet = $(element).find(".contact_subtitle").text();
+              const nameByAddress = $(".branch_block")
+                .map(async (index, element) => {
+                  //stexic
+                  const workTime = $(element).find(".work_hours").text();
+                  const lat = $(element).find(".map_ico").attr("lat");
+                  const lon = $(element).find(".map_ico").attr("lon");
+                  const branchObj = {};
+                  const phone = $(element).find(".phone_info").text();
+                  const address = $(element).find(".address_block").text();
+                  const titleGet = $(element).find(".contact_subtitle").text();
 
-                if (phone[index] && lon && lat) {
-                  branchObj.telephone = phone;
-                } else {
-                  branchObj.telephone = null;
-                }
-                if (address[index] && lon && lat) {
-                  branchObj.adres = address.replace(/["'()]/g, "");
-                } else {
-                  branchObj.adres = null;
-                }
-                if (lon && lat) {
-                  branchObj.latitud = lat;
-                } else {
-                  branchObj.latitud = null;
-                }
-                if (lon && lat) {
-                  branchObj.longitud = lon;
-                } else {
-                  branchObj.longitud = null;
-                }
-                if (workTime[index] && lon && lat) {
-                  branchObj.workTime = workTime;
-                } else {
-                  branchObj.workTime = null;
-                }
-                if (titleGet[index] && lon && lat) {
-                  branchObj.title = titleGet.replace(/["'()]/g, "");
-                } else {
-                  branchObj.title = null;
-                }
-                if (lon && lat) {
-                  branchObjArray.push(branchObj);
-                }
+                  if (lon && lat&&phone) {
+                    branchObj.telephone = phone;
+                  } else {
+                    branchObj.telephone = null;
+                  }
+                  if (lon && lat&&address) {
+                    branchObj.adres = address.replace(/["'()]/g, "");
+                  } else {
+                    branchObj.adres = null;
+                  }
+                  if (lon && lat) {
+                    branchObj.latitud = lat;
+                  } else {
+                    branchObj.latitud = null;
+                  }
+                  if (lon && lat) {
+                    branchObj.longitud = lon;
+                  } else {
+                    branchObj.longitud = null;
+                  }
+                  if (lon && lat&&workTime) {
+                    branchObj.workTime = workTime;
+                  } else {
+                    branchObj.workTime = null;
+                  }
+                  if (lon && lat&&titleGet) {
+                    branchObj.title = titleGet.replace(/["'()]/g, "");
+                  } else {
+                    branchObj.title = null;
+                  }
+                  if (lon && lat) {
+                    branchObjArray.push(branchObj);
+                  }
 
-                if (activArray[0] && lon && lat) {
-                  resObj.activity = activArray[0];
-                } else {
-                  resObj.activity = null;
-                }
-                if (lon && lat && activArray[0]) {
-                  resObj.branches = branchObjArray;
-                }
+                  if (lon && lat&&activArray[0]) {
+                    resObj.activity = activArray[0];
+                  } else {
+                    resObj.activity = null;
+                  }
+                  if (lon && lat) {
+                    resObj.branches = branchObjArray;
+                  }
 
-                if (lon && lat) {
-                  resArr.push(resObj);
+                  if (lon && lat) {
+                    resArr.push(resObj);
+                  }
+                })
+                .get(); //stex
+
+              // if (!findDbOrg) {
+                if (
+                  resObj.branches &&
+                  status !== "ՉԻ ԳՈՐԾՈՒՄ" &&
+                  status !== "DOESN'T OPERATE" &&
+                  status !== "НЕ ДЕЙСТВУЕТ" &&
+                  resObj.activity&&resObj.name!=='«ԱՎՏՈՍԱՆ» ԱՎՏՈՊԱՀԵՍՏԱՄԱՍԵՐԻ ԽԱՆՈՒԹ-ՍՐԱՀ ԵՎ ԱՎՏՈՏԵԽՍՊԱՍԱՐԿՄԱՆ ԿԵՆՏՐՈՆ «ՋԱԿՈ ԱՎՏՈԴԵՏ» սահմանափակ պատասխանատվությամբ ընկերություն/ՍՊԸ'
+                ) {
+                  resultArray.push(resObj);
                 }
-              })
-              .get(); //stex
-
-            if (!findDbOrg) {
-            if (
-              resObj.branches &&
-              status !== "ՉԻ ԳՈՐԾՈՒՄ" &&
-              status !== "DOESN'T OPERATE" &&
-              status !== "НЕ ДЕЙСТВУЕТ" &&
-              resObj.activity
-            ) {
-              resultArray.push(resObj);
-            }
-
+              // }
             }
           }
         }
@@ -331,6 +310,23 @@ const productService = {
         return resultArray;
       };
 
+      for (let iLang = 0; iLang < brandFuncAm[0].length; iLang++) {
+        const link_amByEn = brandFuncAm[0][iLang].link;
+        const link_amSplit=link_amByEn.split("/")
+        link_amSplit[1]="en"
+        const resEnLink=link_amSplit.join("/")
+        brandFuncAm[1][iLang].link=resEnLink
+
+
+        const link_amByRu = brandFuncAm[0][iLang].link;
+        const link_ruSplit=link_amByRu.split("/")
+        link_ruSplit[1]="ru"
+        const resRuLink=link_ruSplit.join("/")
+        brandFuncAm[2][iLang].link=resRuLink
+      }
+
+
+     
       const armenian = await linksFuncBylangArrays(brandFuncAm[0]).then(
         (res) => {
           return res;
@@ -346,12 +342,21 @@ const productService = {
           return res;
         }
       );
-      // console.log("armenian",armenian);
-      // console.log("english",english);
-      // console.log("russian",russian);
-
+      
+      console.log("companys verjnakan arm",armenian.length);
+      console.log("companys verjnakan en",english.length);
+      console.log("companys verjnakan ru",russian.length);
       const resultArrayByOneAm = [armenian, english, russian];
 
+      // console.log(resultArrayByOneAm);
+     
+      //three level
+
+
+      if (armenian.length===english.length && russian.length===english.length && russian.length===armenian.length) {
+        
+      
+      //bd level
       const dbGlobalFunc = async (resultArrayByOneAm) => {
         for (
           let i_organ = 0;
@@ -365,30 +370,24 @@ const productService = {
             );
           });
 
-          if (!filterActiv) {
+          if (
+            !filterActiv
+          ) {
             await addTableActivity(
               resultArrayByOneAm[0][i_organ].activity,
               resultArrayByOneAm[1][i_organ].activity,
               resultArrayByOneAm[2][i_organ].activity
             );
           }
-        }
 
-
-        for (
-          let i_organ = 0;
-          i_organ < resultArrayByOneAm[0].length;
-          i_organ++
-        ) {
-          const dbByActivFilter = await getActivityTable();
-          const filterActiv = await dbByActivFilter[0].find((el) => {
-            return (
-              el.subCategory_am === resultArrayByOneAm[0][i_organ].activity
-            );
+          const dbByBrandFilter = await getBrandsTable();
+          const filterBrand = await dbByBrandFilter[0].find((el) => {
+            return el.brand_am === resultArrayByOneAm[0][i_organ].brand;
           });
-
-          if (!filterActiv) {
-            await addTableActivity(
+          if (
+            !filterBrand 
+          ) {
+            await addTableBrand(
               resultArrayByOneAm[0][i_organ].brand,
               resultArrayByOneAm[1][i_organ].brand,
               resultArrayByOneAm[2][i_organ].brand
@@ -396,18 +395,27 @@ const productService = {
           }
         }
 
+        
+
         const dbActivResult = await getActivityTable();
+        const dbBrandResult = await getBrandsTable();
         for (let indorg = 0; indorg < resultArrayByOneAm[0].length; indorg++) {
           const findActivbyOrgActivity = await dbActivResult[0].find((el) => {
             return el.subCategory_am === resultArrayByOneAm[0][indorg].activity;
           });
-
-          if (findActivbyOrgActivity) {
+          const findActivbyOrgBrands = await dbBrandResult[0].find((el) => {
+            return el.brand_am === resultArrayByOneAm[0][indorg].brand;
+          });
+          if (
+            findActivbyOrgActivity &&
+            findActivbyOrgBrands
+          ) {
             await addTableOrganization(
               resultArrayByOneAm[0][indorg].name,
               resultArrayByOneAm[1][indorg].name,
               resultArrayByOneAm[2][indorg].name,
-              findActivbyOrgActivity.id
+              findActivbyOrgActivity.id,
+              findActivbyOrgBrands.id
             );
           }
         }
@@ -419,107 +427,124 @@ const productService = {
           iByLang < resultArrayByOneAm[0].length;
           iByLang++
         ) {
-          const findRes = resGlobObj[0].find((el) => {
-            return el.name_am === resultArrayByOneAm[0][iByLang].name;
-          });
+          
+            const findRes = resGlobObj[0].find((el) => {
+              return el.name_am === resultArrayByOneAm[0][iByLang].name;
+            });
 
-          if (resultArrayByOneAm[0][iByLang].image !== null) {
-            for (
-              let imgIndex = 0;
-              imgIndex < resultArrayByOneAm[0][iByLang].image.length;
-              imgIndex++
+            if (
+              resultArrayByOneAm[0][iByLang].image !== null &&
+              resultArrayByOneAm[1][iByLang].image !== null &&
+              resultArrayByOneAm[2][iByLang].image !== null
             ) {
-              async function downloadImage(url, outputPath) {
-                const response = await fetch(url);
-                const arrayBuffer = await response.arrayBuffer();
-                const buffer = Buffer.from(arrayBuffer);
+              for (
+                let imgIndex = 0;
+                imgIndex < resultArrayByOneAm[0][iByLang].image.length;
+                imgIndex++
+              ) {
+                async function downloadImage(url, outputPath) {
+                  const response = await fetch(url);
+                  const arrayBuffer = await response.arrayBuffer();
+                  const buffer = Buffer.from(arrayBuffer);
 
-                fs.writeFileSync(outputPath, buffer); // For Node.js, skip this if you're working in the browser
-              }
-
-              // Usage
-
-              const imageUrl = `https://www.spyur.am/${resultArrayByOneAm[0][iByLang].image[imgIndex]}`;
-              const splimg = imageUrl.split("/");
-              const resimg = splimg[splimg.length - 1].split("?");
-              const dirPath = `./public/images/${findRes.id}`;
-
-              fs.mkdir(dirPath, { recursive: true }, (err) => {
-                if (err) {
-                  console.error(err);
-                  return;
+                  fs.writeFileSync(outputPath, buffer); // For Node.js, skip this if you're working in the browser
                 }
-                console.log("Directory created successfully");
-              });
-              const outputPath = `./public/images/${findRes.id}/${resimg[0]}`; // Specify the path where you want to save the image
-              const pathBd = outputPath.split("/");
-              pathBd.shift();
-              const resPathDb = pathBd.join("/");
-              downloadImage(imageUrl, outputPath)
-                .then(() => console.log("Image downloaded successfully"))
-                .catch((err) => console.error("Error downloading image:", err));
-              await addTableImages(findRes.id, resPathDb);
-            }
-          }
-          for (
-            let indexbranch = 0;
-            indexbranch < resultArrayByOneAm[0][iByLang].branches.length;
-            indexbranch++
-          ) {
-            if (resultArrayByOneAm[1][iByLang].branches[indexbranch]) {
-              await addTableBranch(
-                findRes.id,
-                resultArrayByOneAm[0][iByLang].branches[indexbranch].telephone,
-                resultArrayByOneAm[0][iByLang].branches[indexbranch].adres,
-                resultArrayByOneAm[1][iByLang].branches[indexbranch].adres,
-                resultArrayByOneAm[2][iByLang].branches[indexbranch].adres,
-                resultArrayByOneAm[2][iByLang].branches[indexbranch].latitud,
-                resultArrayByOneAm[2][iByLang].branches[indexbranch].longitud,
-                resultArrayByOneAm[0][iByLang].branches[indexbranch].title,
-                resultArrayByOneAm[1][iByLang].branches[indexbranch].title,
-                resultArrayByOneAm[2][iByLang].branches[indexbranch].title,
-                resultArrayByOneAm[0][iByLang].branches[indexbranch].workTime,
-                resultArrayByOneAm[1][iByLang].branches[indexbranch].workTime,
-                resultArrayByOneAm[2][iByLang].branches[indexbranch].workTime
-              );
-            }
-          }
 
-          if (resultArrayByOneAm[0][iByLang].webLink) {
-            await addWebLink(
-              findRes.id,
-              resultArrayByOneAm[0][iByLang].webLink
-            );
-          } else {
-            await addWebLink(findRes.id, null);
-          }
+                // Usage
+
+                const imageUrl = `https://www.spyur.am/${resultArrayByOneAm[0][iByLang].image[imgIndex]}`;
+                const splimg = imageUrl.split("/");
+                const resimg = splimg[splimg.length - 1].split("?");
+                const dirPath = `./public/brand_image/${findRes.id}`;
+
+                fs.mkdir(dirPath, { recursive: true }, (err) => {
+                  if (err) {
+                    console.error(err);
+                    return;
+                  }
+                  console.log("Directory created successfully");
+                });
+                const outputPath = `./public/brand_image/${findRes.id}/${resimg[0]}`; // Specify the path where you want to save the image
+                const pathBd = outputPath.split("/");
+                pathBd.shift();
+                const resPathDb = pathBd.join("/");
+                downloadImage(imageUrl, outputPath)
+                  .then(() => {
+                    console.log("Image downloaded successfully")
+                  })
+                  .catch((err) =>
+                    console.error("Error downloading image:", err)
+                  );
+                
+                  await addTableImages(findRes.id, resPathDb);
+                
+              }
+            }
+            if (
+              resultArrayByOneAm[0][iByLang] &&
+              resultArrayByOneAm[1][iByLang] &&
+              resultArrayByOneAm[2][iByLang]
+            ) {
+              for (
+                let indexbranch = 0;
+                indexbranch < resultArrayByOneAm[0][iByLang].branches.length;
+                indexbranch++
+              ) {
+                // console.log(findRes);
+                if (resultArrayByOneAm[1][iByLang].branches[indexbranch]) {
+                  await addTableBranch(
+                    findRes.id,
+                    resultArrayByOneAm[0][iByLang].branches[indexbranch]
+                      .telephone,
+                    resultArrayByOneAm[0][iByLang].branches[indexbranch].adres,
+                    resultArrayByOneAm[1][iByLang].branches[indexbranch].adres,
+                    resultArrayByOneAm[2][iByLang].branches[indexbranch].adres,
+                    resultArrayByOneAm[2][iByLang].branches[indexbranch]
+                      .latitud,
+                    resultArrayByOneAm[2][iByLang].branches[indexbranch]
+                      .longitud,
+                    resultArrayByOneAm[0][iByLang].branches[indexbranch].title,
+                    resultArrayByOneAm[1][iByLang].branches[indexbranch].title,
+                    resultArrayByOneAm[2][iByLang].branches[indexbranch].title,
+                    resultArrayByOneAm[0][iByLang].branches[indexbranch]
+                      .workTime,
+                    resultArrayByOneAm[1][iByLang].branches[indexbranch]
+                      .workTime,
+                    resultArrayByOneAm[2][iByLang].branches[indexbranch]
+                      .workTime
+                  );
+                }
+              }
+            }
+
+            if (
+              resultArrayByOneAm[0][iByLang] &&
+              resultArrayByOneAm[1][iByLang] &&
+              resultArrayByOneAm[2][iByLang]
+            ) {
+              await addWebLink(
+                findRes.id,
+                resultArrayByOneAm[0][iByLang].webLink
+              );
+            } else{
+              await addWebLink(findRes.id, null);
+            }
+          
         }
       };
 
-      //DB
+    
+      
       await dbGlobalFunc(resultArrayByOneAm);
-
+      //bd level
       return resultArrayByOneAm;
+    }else{
+      return ({message:"language error"})
+    }
     } catch (error) {
       console.error(error);
     }
   },
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   getCompanyNames: async (lang_am, page, letter_am) => {
     try {

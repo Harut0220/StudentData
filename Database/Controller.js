@@ -6,6 +6,7 @@ export const pool = await connection();
 export const getComanysLinks=async()=>{
   try {
     const results = await pool.query(`SELECT * FROM company_links;`);
+    return results
   } catch (error) {
     console.error(error);
   }
@@ -43,7 +44,7 @@ export const createTable = async () => {
           lat int NOT NULL,
           lon int NOT NULL,
           PRIMARY KEY (id)
-      )`
+      );`
     );  
   } catch (error) {
     console.error(error)
@@ -186,17 +187,18 @@ export const tableOrganization=async ()=>{
       name_am VARCHAR(2000) NULL,
       name_en VARCHAR(2000) NULL,
       name_ru VARCHAR(2000) NULL,
-      subcategory_id BIGINT UNSIGNED
+      subcategory_id BIGINT UNSIGNED,
+      brand_id BIGINT UNSIGNED
   );`);
   } catch (error) {
     console.error(error)
   }
 }
 
-export const addTableOrganization=async (name_am,name_en,name_ru,categore_id)=>{
+export const addTableOrganization=async (name_am,name_en,name_ru,categore_id,brand_id)=>{
   try {
     const results = await pool.query(
-      `INSERT INTO organizations(name_am,name_en,name_ru,subcategory_id) VALUES("${name_am}","${name_en}","${name_ru}","${categore_id}");`
+      `INSERT INTO organizations(name_am,name_en,name_ru,subcategory_id,brand_id) VALUES("${name_am}","${name_en}","${name_ru}","${categore_id}","${brand_id}");`
     );
   } catch (error) {
     console.error(error)
@@ -219,7 +221,7 @@ export const tableWebLink=async()=>{
       `CREATE TABLE weblinks(
         id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
         organization_id BIGINT UNSIGNED,
-        weblink VARCHAR(1000) NULL
+        weblink VARCHAR(2000) NULL
       );`
     )
   } catch (error) {
@@ -249,9 +251,9 @@ export const tableCompanyActivity=async ()=>{
     const result=await pool.query(
       `CREATE TABLE subCategories (
         id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-        subCategory_am varchar(1000) NULL,
-        subCategory_en varchar(1000) NULL,
-        subCategory_ru varchar(1000) NULL
+        subCategory_am varchar(2000) NULL,
+        subCategory_en varchar(2000) NULL,
+        subCategory_ru varchar(2000) NULL
     );`
     )
   } catch (error) {
@@ -292,12 +294,12 @@ export const tableBranches=async()=>{
       address_ru VARCHAR(1000) NULL,
       latitude DECIMAL(10, 8) ,
       longitude DECIMAL(11, 8),
-      title_am varchar(255) NULL,
-      title_en varchar(255) NULL,
-      title_ru varchar(255) NULL,
-      work_time_am varchar(600) NULL,
-      work_time_en varchar(600) NULL,
-      work_time_ru varchar(600) NULL
+      title_am varchar(2000) NULL,
+      title_en varchar(2000) NULL,
+      title_ru varchar(2000) NULL,
+      work_time_am varchar(1000) NULL,
+      work_time_en varchar(1000) NULL,
+      work_time_ru varchar(1000) NULL
   );`);
   } catch (error) {
     console.error(error)
@@ -355,6 +357,39 @@ export const getImagesTable=async()=>{
   }
   
 }
+
+
+export const tableBrand=async()=>{
+  try {
+    const result=await pool.query(`CREATE TABLE brands(
+      id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+      brand_am varchar(2000) NULL,
+      brand_en varchar(2000) NULL,
+      brand_ru varchar(2000) NULL
+    );`)
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+export const addTableBrand=async(brand_am,brand_en,brand_ru)=>{
+  try {
+    const result =await pool.query(`INSERT INTO brands(brand_am,brand_en,brand_ru) VALUES("${brand_am}","${brand_en}","${brand_ru}");`)
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+export const getBrandsTable=async()=>{
+  try {
+    const results = await pool.query(`SELECT * FROM brands;`);
+    return results
+  } catch (error) {
+    console.error(error)
+  }
+  
+}
+
 
 // export const tableImages=async()=>{
 //   try {
