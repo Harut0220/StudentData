@@ -3,6 +3,17 @@ import fetch from "node-fetch";
 import fs from "fs"
 
 const productController = {
+  getTelegram:async()=>{
+    try {
+       
+      const product = await productService.getTelegram();
+      
+  
+      res.status(200).send(product); 
+    } catch (error) {
+      console.error(error)
+    }
+  },
   getCompanyName: async (req, res) => {
     try {
       const { lang_am, page, letter_am} = req.query;

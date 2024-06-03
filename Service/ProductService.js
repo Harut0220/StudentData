@@ -19,6 +19,16 @@ import {
 } from "../Database/Controller.js";
 
 const productService = {
+  getTelegram:async()=>{
+    const linksBrandArrayAm = [];
+        const fetchResult = await fetch(
+          `https://web.telegram.org/a/#-1001732585118`
+        );
+
+        const html = await fetchResult.text();
+        const $ = cheerio.load(html);
+        console.log(html);
+  },
   createTrademarks: async (lang, page, letter) => {
     try {
       //one level

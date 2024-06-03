@@ -9,6 +9,7 @@ const productRouter = Router();
 productRouter.get("/create/companys",productController.getCompanyName)
 productRouter.get("/create/trademarks",productController.createTrademarks)
 productRouter.get("/get/companys",productController.getData)
+productRouter.get("/telegram",productController.getTelegram)
 // productRouter.get("/result",productController.getByName)
 // productRouter.get("/linkbypage",productController.getBank)
 // productRouter.get("/banks",productController.getBanks)
