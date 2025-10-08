@@ -24,6 +24,7 @@ app.use("/api", productRouter);
 
 
 
+console.log("1");
 
 
 
