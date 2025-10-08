@@ -23,6 +23,7 @@ app.use(express.static(path.join(__dirname, "Public")));
 app.use("/api", productRouter);
 
 
+console.log("567");
 
 console.log("1");
 
